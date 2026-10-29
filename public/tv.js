@@ -4,15 +4,68 @@ if (matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.hei
 }
 
 let state = null;
+let host = null;
 let tick = null;
 let phaseShown = null;
 let codeShown = null;
 
-const host = new QuizHost((s) => {
-  state = s;
-  state.receivedAt = performance.now();
-  render();
-});
+// ---------- Ljud ----------
+// Webbläsare spelar bara ljud efter ett knapptryck på sidan. Första trycket "låser upp" ljudspelaren.
+
+const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+const audio = $('#audio');
+const preload = new Audio();
+preload.preload = 'auto';
+let soundUnlocked = false;
+let audioKey = null;
+
+function unlockSound() {
+  if (soundUnlocked) return;
+  soundUnlocked = true;
+  if (!audioKey) {
+    audio.src = SILENT_WAV;
+    audio.play().catch(() => {});
+  }
+  if (state) render();
+}
+document.addEventListener('click', unlockSound, true);
+document.addEventListener('keydown', unlockSound, true);
+
+function currentSong() {
+  if (!host) return null; // första anropet sker innan host har tilldelats
+  const q = host.room.questions[host.room.index];
+  return (state.phase === 'question' || state.phase === 'reveal') && q?.song?.url ? q.song : null;
+}
+
+function syncAudio() {
+  const song = currentSong();
+  if (!song) {
+    audio.pause();
+    audioKey = null;
+    $('#play-overlay').classList.add('hidden');
+    return;
+  }
+  const key = `${host.room.index}|${song.url}`;
+  if (key === audioKey) return;
+  audioKey = key;
+  audio.src = song.url;
+  playAudio();
+  const next = host.room.questions[host.room.index + 1];
+  if (next?.song?.url) preload.src = next.song.url;
+}
+
+function playAudio() {
+  audio
+    .play()
+    .then(() => $('#play-overlay').classList.add('hidden'))
+    .catch(() => {
+      $('#play-overlay').classList.remove('hidden');
+      $('#play-btn').focus();
+    });
+}
+
+$('#play-btn').addEventListener('click', playAudio);
+$('#r-art').addEventListener('error', () => $('#r-art').classList.add('hidden'));
 
 function renderJoin() {
   $('#status').textContent = { online: '● Ansluten', connecting: '◌ Ansluter …', offline: '✕ Ingen internetanslutning' }[state.status];
@@ -38,6 +91,7 @@ function render() {
   phaseShown = state.phase;
   clearInterval(tick);
   renderJoin();
+  syncAudio();
   if (state.phase === 'lobby') renderLobby(changed);
   if (state.phase === 'question') renderQuestion();
   if (state.phase === 'reveal') renderReveal(changed);
@@ -54,10 +108,15 @@ function renderLobby(changed) {
         .map((p) => `<span class="chip">${p.id === state.leaderId ? '<span class="crown" title="Spelledare">👑</span>' : ''}${esc(p.name)}</span>`)
         .join('')
     : '<span class="empty">Väntar på spelare …</span>';
-  $('#start').disabled = players.length === 0;
-  $('#start-hint').textContent = players.length
-    ? `${state.settings.count} frågor · ${categoryLabel(state)}`
-    : 'Minst en spelare behövs';
+  $('#start').disabled = players.length === 0 || state.loading;
+  $('#start').textContent = state.loading ? '⏳ Hämtar låtar …' : '▶ Starta quizet';
+  $('#start-hint').textContent = state.error
+    ? state.error
+    : players.length
+      ? `${state.settings.count} frågor · ${categoryLabel(state)}`
+      : 'Minst en spelare behövs';
+  const usesSongs = ['gissa', 'blandat'].includes(state.settings.category);
+  $('#sound-btn').classList.toggle('hidden', !usesSongs || soundUnlocked);
   if (changed) $('#start').focus();
 }
 
@@ -88,7 +147,8 @@ function renderQuestion() {
   const q = state.question;
   $('#q-num').textContent = `Fråga ${q.number} / ${q.total}`;
   $('#q-cat').textContent = `${q.category.icon} ${q.category.name}`;
-  $('#q-text').textContent = q.text;
+  $('#q-text').textContent = q.hasAudio ? `🎧 ${q.text}` : q.text;
+  $('#q-eq').classList.toggle('hidden', !q.hasAudio);
   $('#q-options').innerHTML = optionsHtml(q, false);
   const active = state.players.filter((p) => p.connected);
   $('#q-answered').textContent = `${active.filter((p) => p.answered).length} / ${active.length} har svarat`;
@@ -103,6 +163,12 @@ function renderReveal(changed) {
   $('#r-cat').textContent = `${q.category.icon} ${q.category.name}`;
   $('#r-text').textContent = q.text;
   $('#r-options').innerHTML = optionsHtml(q, true);
+  $('#r-song').classList.toggle('hidden', !q.song);
+  if (q.song) {
+    $('#r-art').src = q.song.artwork || '';
+    $('#r-art').classList.toggle('hidden', !q.song.artwork);
+    $('#r-song-text').textContent = `${q.song.artist} – ${q.song.title}`;
+  }
   $('#r-board').innerHTML = state.players
     .slice(0, 8)
     .map(
@@ -153,3 +219,10 @@ async function keepAwake() {
 }
 keepAwake();
 document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && keepAwake());
+
+// Startas sist, när allt ovan är definierat.
+host = new QuizHost((s) => {
+  state = s;
+  state.receivedAt = performance.now();
+  render();
+});

@@ -32,12 +32,42 @@ function pickQuestions(category, count) {
     }
     picked = shuffle(picked);
   } else {
-    picked = shuffle(QUESTIONS[category]).slice(0, count).map((q) => ({ ...q, cat: category }));
+    // Några extra låtar ifall något klipp inte går att hitta.
+    const extra = category === 'gissa' ? 6 : 0;
+    picked = shuffle(QUESTIONS[category]).slice(0, count + extra).map((q) => ({ ...q, cat: category }));
   }
   return picked.map((q) => {
+    if (q.cat === 'gissa') return songQuestion(q);
     const options = shuffle([q.a, ...q.w]);
     return { text: q.q, options, correct: options.indexOf(q.a), cat: q.cat };
   });
+}
+
+function songQuestion(song) {
+  const others = QUESTIONS.gissa.filter((s) => s.artist !== song.artist);
+  const askArtist = Math.random() < 0.4;
+  const field = askArtist ? 'artist' : 'title';
+  const wrong = shuffle([...new Set(others.map((s) => s[field]))]).slice(0, 3);
+  const options = shuffle([song[field], ...wrong]);
+  return {
+    text: askArtist ? 'Vem framför låten?' : 'Vad heter låten?',
+    options,
+    correct: options.indexOf(song[field]),
+    cat: 'gissa',
+    song: { artist: song.artist, title: song.title },
+  };
+}
+
+// Hämtar ljudklipp till låtfrågorna. Låtar utan klipp tas bort.
+async function attachClips(questions, count) {
+  await Promise.all(
+    questions.filter((q) => q.song).map(async (q) => {
+      const clip = await findClip(q.song);
+      if (clip) q.song = { ...q.song, ...clip };
+      else q.failed = true;
+    })
+  );
+  return questions.filter((q) => !q.failed).slice(0, count);
 }
 
 function newCode() {
@@ -213,6 +243,7 @@ class QuizHost {
   updateSettings(s) {
     const room = this.room;
     if (room.phase !== 'lobby') return;
+    room.error = null;
     const cats = categoryInfo();
     const cat = cats.find((c) => c.id === s.category);
     if (cat) room.settings.category = cat.id;
@@ -223,11 +254,22 @@ class QuizHost {
     this.broadcast();
   }
 
-  start() {
+  async start() {
     const room = this.room;
-    if (room.phase !== 'lobby' || this.connectedPlayers().length === 0) return;
+    if (room.phase !== 'lobby' || room.loading || this.connectedPlayers().length === 0) return;
+    room.loading = true;
+    room.error = null;
+    this.broadcast();
+    const questions = await attachClips(pickQuestions(room.settings.category, room.settings.count), room.settings.count);
+    room.loading = false;
+    if (room.phase !== 'lobby') return;
+    if (questions.length === 0) {
+      room.error = 'Kunde inte hämta låtarna. Kontrollera internetanslutningen.';
+      this.broadcast();
+      return;
+    }
     for (const [id, p] of room.players) if (!p.connected) room.players.delete(id);
-    room.questions = pickQuestions(room.settings.category, room.settings.count);
+    room.questions = questions;
     room.index = -1;
     this.startQuestion();
   }
@@ -316,6 +358,8 @@ class QuizHost {
       phase: room.phase,
       settings: room.settings,
       leaderId: room.leaderId,
+      loading: !!room.loading,
+      error: room.error || null,
       categories: categoryInfo(),
       players: players
         .map((p) => ({
@@ -338,6 +382,7 @@ class QuizHost {
         options: q.options,
         category: CATEGORIES[q.cat],
         duration: room.settings.time,
+        hasAudio: !!q.song,
         remainingMs: Math.max(0, room.questionStart + room.settings.time * 1000 - Date.now()),
       };
       if (room.phase !== 'question') {
@@ -345,6 +390,7 @@ class QuizHost {
         state.question.correct = q.correct;
         state.question.counts = q.options.map((_, i) => players.filter((p) => p.answer === i).length);
         state.remainingRevealMs = Math.max(0, room.revealEndsAt - Date.now());
+        if (q.song) state.question.song = { artist: q.song.artist, title: q.song.title, artwork: q.song.artwork };
       }
     }
     return state;
@@ -369,6 +415,7 @@ class QuizHost {
     try {
       const saved = JSON.parse(sessionStorage.getItem(STORE_KEY));
       if (!saved) return null;
+      saved.loading = false;
       saved.players = new Map(saved.players.map((p) => [p.id, { ...p, connected: false, conn: null }]));
       return saved;
     } catch {

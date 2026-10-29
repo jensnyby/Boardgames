@@ -7,6 +7,7 @@ const CATEGORIES = {
   geografi: { name: 'Finlands geografi', icon: '🗺️' },
   natur: { name: 'Finlands natur', icon: '🌲' },
   musik: { name: 'Musik', icon: '🎵' },
+  gissa: { name: 'Gissa låten', icon: '🎧' },
 };
 
 const QUESTIONS = {
@@ -140,6 +141,41 @@ const QUESTIONS = {
     { q: 'Vem komponerade tangoklassikern ”Satumaa”?', a: 'Unto Mononen', w: ['Toivo Kärki', 'Olavi Virta', 'Reijo Taipale'] },
     { q: 'Vilken grupp sjöng ”Ievan polkka” som blev ett internetfenomen?', a: 'Loituma', w: ['Värttinä', 'JPP', 'Hevisaurus'] },
     { q: 'Vilket band är känt för enorma tofsfrisyrer och samarbete med Aki Kaurismäki?', a: 'Leningrad Cowboys', w: ['Eppu Normaali', 'Dingo', 'Popeda'] },
+  ],
+
+  // Gissa låten: TV:n spelar ett 30 sekunders förhandsklipp (från Apples sök-API) och frågan blir
+  // antingen ”Vad heter låten?” eller ”Vem framför låten?”.
+  gissa: [
+    { artist: 'Käärijä', title: 'Cha Cha Cha' },
+    { artist: 'Lordi', title: 'Hard Rock Hallelujah' },
+    { artist: 'Darude', title: 'Sandstorm' },
+    { artist: 'The Rasmus', title: 'In the Shadows' },
+    { artist: 'HIM', title: 'Join Me in Death' },
+    { artist: 'Nightwish', title: 'Nemo' },
+    { artist: 'Sunrise Avenue', title: 'Fairytale Gone Bad' },
+    { artist: "Bomfunk MC's", title: 'Freestyler' },
+    { artist: 'Erika Vikman', title: 'Ich komme' },
+    { artist: 'Blind Channel', title: 'Dark Side' },
+    { artist: 'Alma', title: 'Chasing Highs' },
+    { artist: 'Robin', title: 'Frontside Ollie' },
+    { artist: 'Cheek', title: 'Liekeissä' },
+    { artist: 'JVG', title: 'Kran Turismo' },
+    { artist: 'Teflon Brothers', title: 'Pämppää' },
+    { artist: 'Behm', title: 'Hei rakas' },
+    { artist: 'Sanni', title: 'Jos mä oon oikee' },
+    { artist: 'Chisu', title: 'Sabotage' },
+    { artist: 'Anna Puu', title: 'C-rappu' },
+    { artist: 'Haloo Helsinki!', title: 'Vieläkö on päiviä' },
+    { artist: 'Arttu Wiskari', title: 'Mökkitie' },
+    { artist: 'Apulanta', title: 'Anna mulle piiskaa' },
+    { artist: 'Yö', title: 'Joutsenlaulu' },
+    { artist: 'Eppu Normaali', title: 'Murheellisten laulujen maa' },
+    { artist: 'Dingo', title: 'Autiotalo' },
+    { artist: 'Kaija Koo', title: 'Tinakenkätyttö' },
+    { artist: 'Paula Koivuniemi', title: 'Aikuinen nainen' },
+    { artist: 'Reijo Taipale', title: 'Satumaa' },
+    { artist: 'Loituma', title: 'Ievan polkka' },
+    { artist: 'Frederik', title: 'Tsingis Khan' },
   ],
 };
 

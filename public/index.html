@@ -19,6 +19,7 @@
         <div id="tv-settings" style="display:flex;flex-direction:column;gap:1.1em"></div>
         <div style="margin-top:auto;display:flex;align-items:center;gap:1em">
           <button class="btn primary" id="start" style="font-size:1.3em">▶ Starta quizet</button>
+          <button class="btn" id="sound-btn">🔇 Slå på ljudet</button>
           <span id="start-hint" class="empty"></span>
         </div>
       </div>
@@ -45,6 +46,7 @@
       <span class="chip" id="q-cat"></span>
     </div>
     <div class="q-text" id="q-text"></div>
+    <div class="eq hidden" id="q-eq"><span></span><span></span><span></span><span></span><span></span></div>
     <div class="timer">
       <div class="timer-bar"><div id="timer-fill"></div></div>
       <div class="timer-num" id="timer-num"></div>
@@ -63,6 +65,7 @@
       <div>
         <div class="q-text" id="r-text"></div>
         <div class="options" id="r-options"></div>
+        <div class="song-card hidden" id="r-song"><img id="r-art" alt=""><div><div class="muted">Låten var</div><div id="r-song-text"></div></div></div>
       </div>
       <div class="panel">
         <h2>Ställning</h2>
@@ -85,10 +88,18 @@
     <div class="board" id="final-rest" style="flex-direction:row;flex-wrap:wrap;justify-content:center"></div>
   </section>
 
+  <!-- Ljud för Gissa låten -->
+  <audio id="audio" preload="auto"></audio>
+  <div id="play-overlay" class="overlay hidden">
+    <button class="btn primary" id="play-btn" style="font-size:1.4em">▶ Spela upp låten</button>
+    <div>TV:n behöver ett knapptryck innan den får spela ljud.</div>
+  </div>
+
   <script src="vendor/peerjs.min.js"></script>
   <script src="vendor/qrcode.js"></script>
   <script src="questions.js"></script>
   <script src="common.js"></script>
+  <script src="songs.js"></script>
   <script src="host.js"></script>
   <script src="tv.js"></script>
 </body>

@@ -179,11 +179,12 @@ function render() {
     if (isLeader()) {
       // Ritas om varje gång så att ändringar från TV:n syns.
       view.innerHTML = `
+        ${state.error ? `<p class="error">${esc(state.error)}</p>` : ''}
         <div class="card">
           <h2>👑 Du är spelledare</h2>
           <div id="settings" style="display:flex;flex-direction:column;gap:14px"></div>
         </div>
-        <button class="btn primary big" id="start">▶ Starta quizet</button>
+        <button class="btn primary big" id="start" ${state.loading ? 'disabled' : ''}>${state.loading ? '⏳ Hämtar låtar …' : '▶ Starta quizet'}</button>
         <p class="sub" style="text-align:center">${state.players.filter((x) => x.connected).length} spelare med</p>`;
       renderSettings($('#settings'), state, (s) => send('settings', { settings: s }));
       $('#start').onclick = () => send('start');
@@ -215,7 +216,7 @@ function render() {
     }
     if (fresh) {
       view.innerHTML = `
-        <div class="chip" style="align-self:center">Fråga ${q.number} / ${q.total}</div>
+        <div class="chip" style="align-self:center">Fråga ${q.number} / ${q.total}${q.hasAudio ? ' · 🎧 Lyssna på TV:n' : ''}</div>
         <div class="phone-q">${esc(q.text)}</div>
         <div class="phone-timer"><div id="pt"></div></div>
         <div class="opt-grid">
@@ -255,6 +256,7 @@ function render() {
       <div class="card">
         <h2>Rätt svar</h2>
         <div class="opt-btn ${OPT_CLASSES[q.correct]}"><span class="shape">${OPT_SHAPES[q.correct]}</span>${esc(q.options[q.correct])}</div>
+        ${q.song ? `<div class="sub">🎵 ${esc(q.song.artist)} – ${esc(q.song.title)}</div>` : ''}
       </div>
       <div class="center-msg" style="flex:0">
         <div class="title">Du ligger på plats ${rank} av ${state.players.length}</div>

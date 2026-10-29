@@ -53,6 +53,7 @@ button {
   background: rgba(255, 255, 255, .14);
   font-weight: 700;
   transition: transform .1s, background .15s, box-shadow .15s;
+  white-space: nowrap;
 }
 .btn:hover { background: rgba(255, 255, 255, .22); }
 .btn:active { transform: scale(.97); }
@@ -129,12 +130,14 @@ body.tv {
 .panel h2 { margin: 0; font-size: 1.15em; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
 
 .join { display: flex; gap: 1.5em; align-items: center; }
+.tv .cats { grid-template-columns: repeat(3, 1fr); }
+.tv .cat { padding: .6em .4em; }
 .join .qr { width: 13em; height: 13em; border-radius: 14px; background: #fff; padding: .4em; flex: none; }
 .join .qr svg { width: 100%; height: 100%; display: block; }
 #status { font-size: .8em; color: var(--muted); }
 #status[data-status="online"] { color: #8be3ad; }
 #status[data-status="offline"] { color: #ffb3ad; }
-.join .url { font-size: 1.05em; color: var(--muted); word-break: break-all; }
+.join .url { font-size: 1.05em; color: var(--muted); overflow-wrap: anywhere; }
 .join .code { font-size: 3.6em; font-weight: 900; letter-spacing: .12em; line-height: 1; }
 
 .player-grid { display: flex; flex-wrap: wrap; gap: .5em; align-content: flex-start; overflow: hidden; }
@@ -170,6 +173,18 @@ body.tv {
 .option .count { margin-left: auto; font-size: .9em; background: rgba(0, 0, 0, .25); padding: .1em .6em; border-radius: 999px; }
 .option.dim { opacity: .25; }
 .option.right { transform: scale(1.03); box-shadow: 0 0 0 5px var(--white); }
+
+.eq { display: flex; justify-content: center; align-items: flex-end; gap: .35em; height: 3em; }
+.eq span { width: .7em; height: 100%; background: var(--white); border-radius: 4px; animation: eq 1s ease-in-out infinite; transform-origin: bottom; }
+.eq span:nth-child(2) { animation-delay: -.2s; }
+.eq span:nth-child(3) { animation-delay: -.5s; }
+.eq span:nth-child(4) { animation-delay: -.7s; }
+.eq span:nth-child(5) { animation-delay: -.35s; }
+@keyframes eq { 0%, 100% { transform: scaleY(.25); } 50% { transform: scaleY(1); } }
+
+.song-card { display: flex; align-items: center; gap: 1em; margin-top: 1.2em; background: rgba(0, 0, 0, .2); border-radius: var(--radius); padding: .8em; font-size: 1.3em; font-weight: 800; }
+.song-card img { width: 4.5em; height: 4.5em; border-radius: 10px; object-fit: cover; }
+.song-card .muted { color: var(--muted); font-size: .7em; font-weight: 600; }
 
 .answered { text-align: center; color: var(--muted); font-size: 1.1em; }
 
