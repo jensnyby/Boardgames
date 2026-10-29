@@ -64,6 +64,7 @@
     <div class="reveal-grid">
       <div>
         <div class="q-text" id="r-text"></div>
+        <div class="answer-banner" id="r-answer"></div>
         <div class="options" id="r-options"></div>
         <div class="song-card hidden" id="r-song"><img id="r-art" alt=""><div><div class="muted">Låten var</div><div id="r-song-text"></div></div></div>
       </div>
@@ -82,10 +83,27 @@
   <section id="final" class="screen hidden">
     <header class="tv-header">
       <div class="logo">🏆 Slutresultat</div>
-      <button class="btn primary" id="again">↻ Spela igen</button>
+      <span style="display:flex;gap:.8em">
+        <button class="btn" id="recap-btn">📋 Rätta svar</button>
+        <button class="btn primary" id="again">↻ Spela igen</button>
+      </span>
     </header>
     <div class="podium" id="podium"></div>
     <div class="board" id="final-rest" style="flex-direction:row;flex-wrap:wrap;justify-content:center"></div>
+  </section>
+
+  <!-- Genomgång av rätta svar -->
+  <section id="recap" class="screen hidden">
+    <header class="tv-header">
+      <div class="logo">📋 Rätta svar</div>
+      <span style="display:flex;gap:.8em;align-items:center">
+        <span class="chip" id="recap-page"></span>
+        <button class="btn" id="recap-prev">◀ Föregående</button>
+        <button class="btn primary" id="recap-next">Nästa ▶</button>
+        <button class="btn" id="recap-back">🏆 Tillbaka</button>
+      </span>
+    </header>
+    <div class="recap-grid" id="recap-list"></div>
   </section>
 
   <!-- Ljud för Gissa låten -->

@@ -276,6 +276,18 @@ function render() {
         <div class="muted">Du fick ${p.score} poäng</div>
       </div>
       ${isLeader() ? '<button class="btn primary big" id="again">↻ Spela igen</button>' : '<p class="sub" style="text-align:center">Spelledaren kan starta en ny omgång.</p>'}
+      <div class="card">
+        <h2>📋 Rätta svar</h2>
+        <div class="phone-recap">
+          ${(state.history || [])
+            .map((h) => {
+              const mark = h.results[me.id] === true ? '✅' : h.results[me.id] === false ? '❌' : '➖';
+              const song = h.song && h.song !== h.answer ? ` <span class="q">(${esc(h.song)})</span>` : '';
+              return `<div class="item"><div class="q">${h.number}. ${esc(h.text)}</div><div class="a">${mark} ${esc(h.answer)}${song}</div></div>`;
+            })
+            .join('')}
+        </div>
+      </div>
       <button class="btn big" id="leave">Lämna spelet</button>`;
     if (isLeader()) $('#again').onclick = () => send('restart');
     $('#leave').onclick = leaveGame;

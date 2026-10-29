@@ -270,6 +270,7 @@ class QuizHost {
     }
     for (const [id, p] of room.players) if (!p.connected) room.players.delete(id);
     room.questions = questions;
+    room.history = [];
     room.index = -1;
     this.startQuestion();
   }
@@ -311,6 +312,19 @@ class QuizHost {
     if (room.phase !== 'question') return;
     clearTimeout(this.timer);
     for (const p of room.players.values()) if (p.answer === null) p.lastCorrect = false;
+    // Spara frågan med rätt svar för genomgången efter spelet.
+    const q = room.questions[room.index];
+    const players = [...room.players.values()];
+    room.history = room.history || [];
+    room.history.push({
+      number: room.index + 1,
+      text: q.text,
+      answer: q.options[q.correct],
+      song: q.song ? `${q.song.artist} – ${q.song.title}` : null,
+      right: players.filter((p) => p.lastCorrect).length,
+      total: players.length,
+      results: Object.fromEntries(players.map((p) => [p.id, p.lastCorrect])),
+    });
     room.phase = 'reveal';
     room.revealEndsAt = Date.now() + REVEAL_SECONDS * 1000;
     this.timer = setTimeout(() => this.startQuestion(), REVEAL_SECONDS * 1000);
@@ -328,6 +342,7 @@ class QuizHost {
     room.phase = 'lobby';
     room.index = -1;
     room.questions = [];
+    room.history = [];
     for (const [id, p] of room.players) {
       if (!p.connected) room.players.delete(id);
       else Object.assign(p, { score: 0, answer: null, lastGain: 0, lastCorrect: null });
@@ -374,6 +389,7 @@ class QuizHost {
         .sort((a, b) => b.score - a.score),
       revealSeconds: REVEAL_SECONDS,
     };
+    if (room.phase === 'final') state.history = room.history || [];
     if (q && room.phase !== 'lobby') {
       state.question = {
         number: room.index + 1,

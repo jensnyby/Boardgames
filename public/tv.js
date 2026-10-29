@@ -8,6 +8,8 @@ let host = null;
 let tick = null;
 let phaseShown = null;
 let codeShown = null;
+let recapPage = null; // sida i genomgången av rätta svar, null = visa prispallen
+const RECAP_PER_PAGE = 8;
 
 // ---------- Ljud ----------
 // Webbläsare spelar bara ljud efter ett knapptryck på sidan. Första trycket "låser upp" ljudspelaren.
@@ -95,7 +97,8 @@ function render() {
   if (state.phase === 'lobby') renderLobby(changed);
   if (state.phase === 'question') renderQuestion();
   if (state.phase === 'reveal') renderReveal(changed);
-  if (state.phase === 'final') renderFinal(changed);
+  if (state.phase !== 'final') recapPage = null;
+  if (state.phase === 'final') recapPage === null ? renderFinal(changed) : renderRecap();
 }
 
 function renderLobby(changed) {
@@ -162,6 +165,7 @@ function renderReveal(changed) {
   $('#r-num').textContent = `Fråga ${q.number} / ${q.total}`;
   $('#r-cat').textContent = `${q.category.icon} ${q.category.name}`;
   $('#r-text').textContent = q.text;
+  $('#r-answer').textContent = `✔ Rätt svar: ${q.options[q.correct]}`;
   $('#r-options').innerHTML = optionsHtml(q, true);
   $('#r-song').classList.toggle('hidden', !q.song);
   if (q.song) {
@@ -203,9 +207,47 @@ function renderFinal(changed) {
   if (changed) $('#again').focus();
 }
 
+function renderRecap() {
+  show('recap');
+  const pages = Math.max(1, Math.ceil(state.history.length / RECAP_PER_PAGE));
+  recapPage = Math.min(Math.max(0, recapPage), pages - 1);
+  const items = state.history.slice(recapPage * RECAP_PER_PAGE, (recapPage + 1) * RECAP_PER_PAGE);
+  $('#recap-list').innerHTML = items
+    .map(
+      (h) => `
+      <div class="recap-item">
+        <div class="recap-q">${h.number}. ${esc(h.text)}</div>
+        <div class="recap-a">✔ ${esc(h.answer)}</div>
+        ${h.song && h.song !== h.answer ? `<div class="recap-song">🎵 ${esc(h.song)}</div>` : ''}
+        <div class="recap-stat">${h.right} av ${h.total} svarade rätt</div>
+      </div>`
+    )
+    .join('');
+  $('#recap-page').textContent = `Sida ${recapPage + 1} / ${pages}`;
+  $('#recap-prev').disabled = recapPage === 0;
+  $('#recap-next').disabled = recapPage >= pages - 1;
+  const focused = document.activeElement;
+  if (!focused || focused.disabled || !$('#recap').contains(focused)) {
+    (recapPage < pages - 1 ? $('#recap-next') : $('#recap-back')).focus();
+  }
+}
+
+function openRecap(page) {
+  recapPage = page;
+  render();
+}
+
 $('#start').addEventListener('click', () => host.start());
 $('#next').addEventListener('click', () => host.next());
 $('#again').addEventListener('click', () => host.restart());
+$('#recap-btn').addEventListener('click', () => openRecap(0));
+$('#recap-prev').addEventListener('click', () => openRecap(recapPage - 1));
+$('#recap-next').addEventListener('click', () => openRecap(recapPage + 1));
+$('#recap-back').addEventListener('click', () => {
+  recapPage = null;
+  phaseShown = null; // fokusera "Spela igen" igen
+  render();
+});
 $('#fullscreen').addEventListener('click', () => {
   if (document.fullscreenElement) document.exitFullscreen();
   else document.documentElement.requestFullscreen?.();

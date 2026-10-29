@@ -45,7 +45,7 @@ Det går också att casta en Chrome-flik från en dator (⋮ → *Casta…* → 
 4. Spelledaren trycker **Starta**. Frågan visas på TV:n och svarsalternativen i färg på telefonerna.
 5. Rätt svar ger 500 poäng + upp till 500 bonuspoäng för snabbhet.
 6. Efter varje fråga visas rätt svar och ställningen. Nästa fråga kommer automatiskt efter 12 sekunder (eller när spelledaren trycker *Nästa*).
-7. Till sist visas prispallen. *Spela igen* tar alla tillbaka till lobbyn.
+7. Till sist visas prispallen. Med **📋 Rätta svar** går man igenom alla frågor med rätt svar och hur många som svarade rätt. På telefonen ser var och en sina egna svar markerade med ✅ eller ❌. *Spela igen* tar alla tillbaka till lobbyn.
 
 Om en telefon låser sig eller tappar anslutningen går den automatiskt tillbaka in i spelet med samma poäng. Även TV-sidan kan laddas om mitt i spelet utan att något försvinner.
 
