@@ -18,8 +18,11 @@
   "homepage": "https://github.com/jensnyby/Boardgames#readme",
   "dependencies": {
     "express": "^4.22.3",
-    "qrcode": "^1.5.4",
-    "socket.io": "^4.8.4"
+    "peerjs": "^1.5.4",
+    "qrcode-generator": "^1.4.4"
   },
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "peer": "^1.0.2"
+  }
 }

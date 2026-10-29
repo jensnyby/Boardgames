@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Finland-quizet – TV</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body class="tv">
   <!-- Lobby -->
   <section id="lobby" class="screen">
     <header class="tv-header">
       <div class="logo"><span class="flag"></span> Finland-quizet</div>
-      <button class="btn" id="fullscreen">⛶ Helskärm</button>
+      <span style="display:flex;gap:.8em;align-items:center"><span class="chip" id="status"></span><button class="btn" id="fullscreen">⛶ Helskärm</button></span>
     </header>
     <div class="lobby">
       <div class="panel">
@@ -25,7 +25,7 @@
       <div class="panel">
         <h2>Gå med från telefonen</h2>
         <div class="join">
-          <img id="qr" alt="QR-kod för att gå med">
+          <div id="qr" class="qr" role="img" aria-label="QR-kod för att gå med"></div>
           <div>
             <div class="url">Skanna QR-koden eller gå till<br><strong id="join-url"></strong></div>
             <div style="margin-top:.6em;color:var(--muted)">Spelkod</div>
@@ -85,8 +85,11 @@
     <div class="board" id="final-rest" style="flex-direction:row;flex-wrap:wrap;justify-content:center"></div>
   </section>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/common.js"></script>
-  <script src="/tv.js"></script>
+  <script src="vendor/peerjs.min.js"></script>
+  <script src="vendor/qrcode.js"></script>
+  <script src="questions.js"></script>
+  <script src="common.js"></script>
+  <script src="host.js"></script>
+  <script src="tv.js"></script>
 </body>
 </html>

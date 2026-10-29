@@ -76,3 +76,16 @@ function categoryLabel(state) {
   const c = state.categories.find((x) => x.id === state.settings.category);
   return c ? `${c.icon} ${c.name}` : '';
 }
+
+// ---------- Uppkoppling ----------
+// Telefonerna kopplar upp sig direkt mot TV:ns webbläsare (WebRTC via PeerJS).
+// PeerJS gratistjänst används för att hitta varandra. Med ?peer=värd:port kan en egen PeerJS-server användas.
+
+const PEER_PREFIX = 'finlandquiz-';
+const CUSTOM_PEER = new URLSearchParams(location.search).get('peer');
+
+function peerOptions() {
+  if (!CUSTOM_PEER) return { debug: 1 };
+  const [host, port = '443'] = CUSTOM_PEER.split(':');
+  return { host, port: Number(port), path: '/', secure: port === '443', debug: 1 };
+}

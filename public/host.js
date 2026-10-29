@@ -1,0 +1,388 @@
+// Spellogiken. Körs i TV:ns webbläsare – telefonerna skickar sina svar hit.
+
+const REVEAL_SECONDS = 12; // hur länge rätt svar + ställning visas innan nästa fråga
+const STORE_KEY = 'quizRoom';
+const PING_TIMEOUT_MS = 10000;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function categoryInfo() {
+  const cats = Object.entries(CATEGORIES).map(([id, c]) => ({ id, ...c, count: QUESTIONS[id].length }));
+  const total = cats.reduce((s, c) => s + c.count, 0);
+  return [...cats, { id: 'blandat', name: 'Blandat', icon: '🎲', count: total }];
+}
+
+function pickQuestions(category, count) {
+  let picked;
+  if (category === 'blandat') {
+    // Turvis ur varje kategori så att blandningen blir jämn.
+    const pools = Object.keys(QUESTIONS).map((id) => shuffle(QUESTIONS[id]).map((q) => ({ ...q, cat: id })));
+    picked = [];
+    for (let i = 0; picked.length < count; i++) {
+      for (const pool of shuffle(pools)) {
+        if (pool[i] && picked.length < count) picked.push(pool[i]);
+      }
+    }
+    picked = shuffle(picked);
+  } else {
+    picked = shuffle(QUESTIONS[category]).slice(0, count).map((q) => ({ ...q, cat: category }));
+  }
+  return picked.map((q) => {
+    const options = shuffle([q.a, ...q.w]);
+    return { text: q.q, options, correct: options.indexOf(q.a), cat: q.cat };
+  });
+}
+
+function newCode() {
+  const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  return Array.from({ length: 4 }, () => letters[Math.floor(Math.random() * letters.length)]).join('');
+}
+
+class QuizHost {
+  constructor(onChange) {
+    this.onChange = onChange;
+    this.status = 'connecting'; // connecting | online | offline
+    this.room = this.load() || {
+      code: newCode(),
+      players: new Map(),
+      leaderId: null,
+      settings: { category: 'blandat', count: 10, time: 20 },
+      phase: 'lobby', // lobby | question | reveal | final
+      questions: [],
+      index: -1,
+      questionStart: 0,
+      revealEndsAt: 0,
+    };
+    this.retries = 0;
+    this.resumeTimers();
+    this.openPeer();
+    setInterval(() => this.sweep(), 2000);
+  }
+
+  // ---------- Uppkoppling ----------
+
+  openPeer() {
+    this.setStatus('connecting');
+    const peer = new Peer(PEER_PREFIX + this.room.code, peerOptions());
+    this.peer = peer;
+    peer.on('open', () => {
+      this.retries = 0;
+      this.setStatus('online');
+    });
+    peer.on('connection', (conn) => this.handleConn(conn));
+    peer.on('disconnected', () => {
+      // Tappade kontakten med PeerJS-servern. Redan anslutna telefoner fungerar ändå.
+      setTimeout(() => {
+        if (peer === this.peer && !peer.destroyed && peer.disconnected) {
+          this.setStatus('connecting');
+          peer.reconnect();
+        }
+      }, 1500);
+    });
+    peer.on('error', (err) => {
+      if (err.type === 'peer-unavailable') return;
+      if (err.type === 'unavailable-id') {
+        // Koden används redan. Efter en omladdning släpps den gamla snart; annars tar vi en ny kod.
+        const hasGame = this.room.players.size > 0 || this.room.phase !== 'lobby';
+        if (!hasGame || this.retries >= 8) {
+          this.room.code = newCode();
+          this.retries = 0;
+        } else {
+          this.retries++;
+        }
+      }
+      if (!peer.open) {
+        this.setStatus('offline');
+        peer.destroy();
+        setTimeout(() => this.openPeer(), err.type === 'unavailable-id' ? 1500 : 4000);
+      }
+    });
+  }
+
+  setStatus(status) {
+    this.status = status;
+    this.broadcast();
+  }
+
+  handleConn(conn) {
+    conn.lastSeen = Date.now();
+    conn.on('data', (msg) => {
+      conn.lastSeen = Date.now();
+      this.handleMessage(conn, msg || {});
+    });
+    conn.on('close', () => this.dropConn(conn));
+    conn.on('error', () => this.dropConn(conn));
+  }
+
+  // Telefoner som inte hörts av på en stund räknas som frånkopplade.
+  sweep() {
+    for (const p of this.room.players.values()) {
+      if (p.conn && Date.now() - p.conn.lastSeen > PING_TIMEOUT_MS) this.dropConn(p.conn);
+    }
+  }
+
+  dropConn(conn) {
+    if (conn.dropped) return;
+    conn.dropped = true;
+    try {
+      conn.close();
+    } catch {}
+    const p = this.room.players.get(conn.playerId);
+    if (!p || p.conn !== conn) return;
+    p.conn = null;
+    p.connected = false;
+    if (this.room.phase === 'lobby') this.room.players.delete(p.id);
+    this.ensureLeader();
+    const active = this.connectedPlayers();
+    if (this.room.phase === 'question' && active.length && active.every((o) => o.answer !== null)) this.reveal();
+    else this.broadcast();
+  }
+
+  send(conn, msg) {
+    if (conn && conn.open) conn.send(msg);
+  }
+
+  handleMessage(conn, msg) {
+    if (msg.t === 'ping') return this.send(conn, { t: 'pong' });
+    if (msg.t === 'join') return this.join(conn, msg);
+
+    const p = this.room.players.get(conn.playerId);
+    if (!p || p.conn !== conn) return;
+    const leader = this.room.leaderId === p.id;
+    if (msg.t === 'answer') this.answer(p, msg.choice);
+    else if (msg.t === 'leave') this.leave(p);
+    else if (!leader) return;
+    else if (msg.t === 'settings') this.updateSettings(msg.settings || {});
+    else if (msg.t === 'start') this.start();
+    else if (msg.t === 'next') this.next();
+    else if (msg.t === 'restart') this.restart();
+  }
+
+  join(conn, { name, id }) {
+    const room = this.room;
+    const cleanName = String(name || '').trim().slice(0, 16);
+    let p = id && room.players.get(id);
+    if (!p && cleanName) {
+      // Samma namn som en frånkopplad spelare = samma person som kommer tillbaka.
+      const same = [...room.players.values()].find((o) => o.name.toLowerCase() === cleanName.toLowerCase());
+      if (same && same.connected) return this.send(conn, { t: 'error', error: 'Namnet är redan taget.' });
+      p = same;
+    }
+    if (!p) {
+      if (!cleanName) return this.send(conn, { t: 'error', error: 'Skriv ditt namn.' });
+      if (room.players.size >= 30) return this.send(conn, { t: 'error', error: 'Spelet är fullt.' });
+      p = { id: Math.random().toString(36).slice(2, 10), name: cleanName, score: 0, answer: null, lastGain: 0, lastCorrect: null };
+      room.players.set(p.id, p);
+    }
+    if (p.conn && p.conn !== conn) {
+      const old = p.conn;
+      p.conn = null;
+      old.dropped = true;
+      try {
+        old.close();
+      } catch {}
+    }
+    p.conn = conn;
+    p.connected = true;
+    conn.playerId = p.id;
+    this.ensureLeader();
+    this.send(conn, { t: 'joined', id: p.id, name: p.name, code: room.code });
+    this.broadcast();
+  }
+
+  // ---------- Spelet ----------
+
+  connectedPlayers() {
+    return [...this.room.players.values()].filter((p) => p.connected);
+  }
+
+  ensureLeader() {
+    const leader = this.room.players.get(this.room.leaderId);
+    if (leader && leader.connected) return;
+    const next = this.connectedPlayers()[0];
+    this.room.leaderId = next ? next.id : null;
+  }
+
+  updateSettings(s) {
+    const room = this.room;
+    if (room.phase !== 'lobby') return;
+    const cats = categoryInfo();
+    const cat = cats.find((c) => c.id === s.category);
+    if (cat) room.settings.category = cat.id;
+    if (TIME_OPTIONS.includes(s.time)) room.settings.time = s.time;
+    const max = cats.find((c) => c.id === room.settings.category).count;
+    const count = Number.isInteger(s.count) ? s.count : room.settings.count;
+    room.settings.count = Math.max(1, Math.min(max, count));
+    this.broadcast();
+  }
+
+  start() {
+    const room = this.room;
+    if (room.phase !== 'lobby' || this.connectedPlayers().length === 0) return;
+    for (const [id, p] of room.players) if (!p.connected) room.players.delete(id);
+    room.questions = pickQuestions(room.settings.category, room.settings.count);
+    room.index = -1;
+    this.startQuestion();
+  }
+
+  startQuestion() {
+    const room = this.room;
+    clearTimeout(this.timer);
+    room.index++;
+    if (room.index >= room.questions.length) {
+      room.phase = 'final';
+      this.broadcast();
+      return;
+    }
+    for (const p of room.players.values()) Object.assign(p, { answer: null, lastGain: 0, lastCorrect: null });
+    room.phase = 'question';
+    room.questionStart = Date.now();
+    this.timer = setTimeout(() => this.reveal(), room.settings.time * 1000 + 300);
+    this.broadcast();
+  }
+
+  answer(p, choice) {
+    const room = this.room;
+    if (room.phase !== 'question' || p.answer !== null || ![0, 1, 2, 3].includes(choice)) return;
+    const q = room.questions[room.index];
+    const durationMs = room.settings.time * 1000;
+    const elapsed = Date.now() - room.questionStart;
+    if (elapsed > durationMs + 500) return;
+    p.answer = choice;
+    p.lastCorrect = choice === q.correct;
+    // Rätt svar ger 500 poäng + upp till 500 bonus för snabbhet.
+    p.lastGain = p.lastCorrect ? 500 + Math.round(500 * Math.max(0, 1 - elapsed / durationMs)) : 0;
+    p.score += p.lastGain;
+    if (this.connectedPlayers().every((o) => o.answer !== null)) this.reveal();
+    else this.broadcast();
+  }
+
+  reveal() {
+    const room = this.room;
+    if (room.phase !== 'question') return;
+    clearTimeout(this.timer);
+    for (const p of room.players.values()) if (p.answer === null) p.lastCorrect = false;
+    room.phase = 'reveal';
+    room.revealEndsAt = Date.now() + REVEAL_SECONDS * 1000;
+    this.timer = setTimeout(() => this.startQuestion(), REVEAL_SECONDS * 1000);
+    this.broadcast();
+  }
+
+  next() {
+    if (this.room.phase === 'reveal') this.startQuestion();
+    else if (this.room.phase === 'question') this.reveal();
+  }
+
+  restart() {
+    const room = this.room;
+    clearTimeout(this.timer);
+    room.phase = 'lobby';
+    room.index = -1;
+    room.questions = [];
+    for (const [id, p] of room.players) {
+      if (!p.connected) room.players.delete(id);
+      else Object.assign(p, { score: 0, answer: null, lastGain: 0, lastCorrect: null });
+    }
+    this.ensureLeader();
+    this.broadcast();
+  }
+
+  leave(p) {
+    this.room.players.delete(p.id);
+    if (p.conn) {
+      p.conn.dropped = true;
+      setTimeout(() => p.conn?.close(), 200);
+    }
+    this.ensureLeader();
+    this.broadcast();
+  }
+
+  // ---------- Tillstånd ----------
+
+  publicState() {
+    const room = this.room;
+    const q = room.questions[room.index];
+    const players = [...room.players.values()];
+    const state = {
+      code: room.code,
+      status: this.status,
+      phase: room.phase,
+      settings: room.settings,
+      leaderId: room.leaderId,
+      categories: categoryInfo(),
+      players: players
+        .map((p) => ({
+          id: p.id,
+          name: p.name,
+          score: p.score,
+          connected: p.connected,
+          answered: p.answer !== null,
+          lastGain: p.lastGain,
+          lastCorrect: p.lastCorrect,
+        }))
+        .sort((a, b) => b.score - a.score),
+      revealSeconds: REVEAL_SECONDS,
+    };
+    if (q && room.phase !== 'lobby') {
+      state.question = {
+        number: room.index + 1,
+        total: room.questions.length,
+        text: q.text,
+        options: q.options,
+        category: CATEGORIES[q.cat],
+        duration: room.settings.time,
+        remainingMs: Math.max(0, room.questionStart + room.settings.time * 1000 - Date.now()),
+      };
+      if (room.phase !== 'question') {
+        // Rätt svar skickas först när frågan är avslutad.
+        state.question.correct = q.correct;
+        state.question.counts = q.options.map((_, i) => players.filter((p) => p.answer === i).length);
+        state.remainingRevealMs = Math.max(0, room.revealEndsAt - Date.now());
+      }
+    }
+    return state;
+  }
+
+  broadcast() {
+    const state = this.publicState();
+    for (const p of this.room.players.values()) this.send(p.conn, { t: 'state', state });
+    this.onChange(state);
+    this.save();
+  }
+
+  // Spelet sparas så att det överlever en omladdning av TV-sidan.
+  save() {
+    const players = [...this.room.players.values()].map(({ conn, ...p }) => p);
+    try {
+      sessionStorage.setItem(STORE_KEY, JSON.stringify({ ...this.room, players }));
+    } catch {}
+  }
+
+  load() {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(STORE_KEY));
+      if (!saved) return null;
+      saved.players = new Map(saved.players.map((p) => [p.id, { ...p, connected: false, conn: null }]));
+      return saved;
+    } catch {
+      return null;
+    }
+  }
+
+  resumeTimers() {
+    const room = this.room;
+    if (room.phase === 'question') {
+      const left = room.questionStart + room.settings.time * 1000 - Date.now();
+      this.timer = setTimeout(() => this.reveal(), Math.max(0, left) + 300);
+    } else if (room.phase === 'reveal') {
+      this.timer = setTimeout(() => this.startQuestion(), Math.max(0, room.revealEndsAt - Date.now()));
+    }
+  }
+}

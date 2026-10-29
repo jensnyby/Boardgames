@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#002f6c">
   <title>Finland-quizet</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body class="phone">
   <!-- Gå med -->
@@ -35,8 +35,14 @@
     <div id="view" style="flex:1;display:flex;flex-direction:column;gap:16px"></div>
   </section>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/common.js"></script>
-  <script src="/play.js"></script>
+  <div id="overlay" class="overlay hidden">
+    <div style="font-size:2.5em">📡</div>
+    <div id="overlay-text"></div>
+    <button class="btn" id="overlay-cancel">Avbryt</button>
+  </div>
+
+  <script src="vendor/peerjs.min.js"></script>
+  <script src="common.js"></script>
+  <script src="play.js"></script>
 </body>
 </html>

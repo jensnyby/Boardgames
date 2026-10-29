@@ -7,37 +7,51 @@ Man väljer kategori, antal frågor och tid per fråga innan spelet startar.
 
 ## Kom igång
 
-Du behöver en dator (Windows, Mac eller Linux) med [Node.js](https://nodejs.org) 18 eller nyare, i samma wifi som TV:n och telefonerna.
+Spelet behöver **ingen egen server**. Allt finns i mappen [`public/`](public) och kan läggas på vilket gratis webbhotell som helst.
+TV:ns webbläsare sköter spelet och telefonerna kopplar upp sig direkt mot den (WebRTC). Den kostnadsfria tjänsten [PeerJS](https://peerjs.com) används bara för att TV:n och telefonerna ska hitta varandra. TV:n och telefonerna behöver internet, men de behöver inte vara i samma wifi.
+
+### Alternativ 1: Netlify Drop (enklast, gratis)
+
+1. Gå till <https://app.netlify.com/drop> och skapa ett gratis konto.
+2. Dra mappen `public` till sidan.
+3. Du får en adress, t.ex. `https://finland-quiz.netlify.app`, som du kan byta namn på under *Site configuration*.
+
+### Alternativ 2: GitHub Pages
+
+GitHub Pages är gratis för publika repon. Gör repot publikt under *Settings → General → Danger Zone*, och välj sedan *Settings → Pages → Source: GitHub Actions*.
+Därefter publiceras spelet automatiskt vid varje push till `main`, på `https://jensnyby.github.io/Boardgames/`.
+
+### Alternativ 3: Lokalt på en dator
 
 ```bash
 npm install
 npm start
 ```
 
-Servern skriver ut en adress, t.ex. `http://192.168.1.23:3000`.
+Öppna sedan `http://localhost:3000`.
 
 ## Visa på Google TV
 
-Välj ett av sätten:
+1. Installera en webbläsare från Play Butik på Google TV, t.ex. *TV Bro*.
+2. Öppna spelets adress och tryck *Helskärm*. Tips: spara adressen som bokmärke.
 
-1. **Webbläsare på TV:n** – installera en webbläsare från Play Butik på Google TV (t.ex. *TV Bro*), och öppna adressen som servern skrev ut. Tryck *Helskärm*.
-2. **Casta från datorn** – öppna adressen i Chrome på datorn, välj ⋮ → *Casta…* → din Google TV och *Casta flik*. Tryck sedan *Helskärm* i quizet.
+Det går också att casta en Chrome-flik från en dator (⋮ → *Casta…* → *Casta flik*).
 
 ## Så spelar man
 
 1. TV:n visar en **QR-kod** och en fyrbokstavs **spelkod**.
-2. Alla skannar QR-koden med telefonen (eller går till `adressen/spela` och skriver koden) och anger sitt namn.
+2. Alla skannar QR-koden med telefonen (eller går till adressen som visas och skriver koden) och anger sitt namn.
 3. Den första som går med blir **spelledare 👑** och väljer kategori, antal frågor och tid direkt på telefonen. Det går också att välja med TV:ns fjärrkontroll.
 4. Spelledaren trycker **Starta**. Frågan visas på TV:n och svarsalternativen i färg på telefonerna.
 5. Rätt svar ger 500 poäng + upp till 500 bonuspoäng för snabbhet.
 6. Efter varje fråga visas rätt svar och ställningen. Nästa fråga kommer automatiskt efter 12 sekunder (eller när spelledaren trycker *Nästa*).
 7. Till sist visas prispallen. *Spela igen* tar alla tillbaka till lobbyn.
 
-Om en telefon låser sig eller tappar anslutningen går den automatiskt tillbaka in i spelet med samma poäng.
+Om en telefon låser sig eller tappar anslutningen går den automatiskt tillbaka in i spelet med samma poäng. Även TV-sidan kan laddas om mitt i spelet utan att något försvinner.
 
 ## Lägga till egna frågor
 
-Frågorna finns i [`questions.js`](questions.js). Varje fråga har formen:
+Frågorna finns i [`public/questions.js`](public/questions.js). Varje fråga har formen:
 
 ```js
 { q: 'Frågan?', a: 'Rätt svar', w: ['Fel 1', 'Fel 2', 'Fel 3'] },
@@ -49,8 +63,10 @@ Svarsalternativen blandas automatiskt. Det går att lägga till fler frågor i e
 
 | Fil | Innehåll |
 | --- | --- |
-| `server.js` | Webbserver och spellogik (Express + Socket.IO) |
-| `questions.js` | Frågebanken |
-| `public/tv.html`, `public/tv.js` | TV-skärmen |
-| `public/play.html`, `public/play.js` | Telefonernas vy |
+| `public/index.html`, `public/tv.js` | TV-skärmen |
+| `public/host.js` | Spellogiken (körs i TV:ns webbläsare) |
+| `public/spela.html`, `public/play.js` | Telefonernas vy |
+| `public/questions.js` | Frågebanken |
 | `public/common.js`, `public/style.css` | Delad kod och utseende |
+| `public/vendor/` | PeerJS och QR-kodsbibliotek |
+| `server.js` | Valfri lokal webbserver |

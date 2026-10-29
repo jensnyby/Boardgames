@@ -143,4 +143,4 @@ const QUESTIONS = {
   ],
 };
 
-module.exports = { CATEGORIES, QUESTIONS };
+if (typeof module !== 'undefined') module.exports = { CATEGORIES, QUESTIONS };

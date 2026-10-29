@@ -1,27 +1,127 @@
-const socket = io();
 const params = new URLSearchParams(location.search);
 let me = JSON.parse(localStorage.getItem('quizPlayer') || 'null'); // { id, name, code }
 let state = null;
 let tick = null;
 let lastRendered = '';
 
-$('#code-input').value = (params.get('r') || me?.code || '').toUpperCase();
-$('#name-input').value = me?.name || '';
+// ---------- Uppkoppling till TV:n ----------
 
-function join(code, name, silent) {
-  socket.emit('player:join', { code, name, id: me?.code === code ? me.id : null }, (res) => {
-    if (res.error) {
-      if (!silent) $('#join-error').textContent = res.error;
-      showJoin();
-      return;
+let peer = null;
+let conn = null;
+let target = null; // { code, name, silent } – det spel vi försöker ansluta till
+let lastMessageAt = 0;
+let reconnectTimer = null;
+
+function send(t, data = {}) {
+  if (conn && conn.open) conn.send({ t, ...data });
+}
+
+function connect(code, name, silent) {
+  target = { code, name, silent };
+  clearTimeout(reconnectTimer);
+  setOverlay(silent ? 'Återansluter till spelet …' : 'Ansluter …');
+  if (!peer || peer.destroyed) {
+    peer = new Peer(peerOptions());
+    peer.on('open', () => target && openConnection());
+    peer.on('disconnected', () => setTimeout(() => peer && !peer.destroyed && peer.disconnected && peer.reconnect(), 1000));
+    peer.on('error', onPeerError);
+  } else if (peer.open) {
+    openConnection();
+  } else if (peer.disconnected) {
+    peer.reconnect();
+  }
+}
+
+function openConnection() {
+  if (conn) {
+    const old = conn;
+    conn = null;
+    old.close();
+  }
+  const { code, name } = target;
+  const c = peer.connect(PEER_PREFIX + code, { reliable: true });
+  conn = c;
+  c.on('open', () => {
+    lastMessageAt = Date.now();
+    c.send({ t: 'join', name, id: me?.code === code ? me.id : null });
+  });
+  c.on('data', (msg) => {
+    if (c !== conn) return;
+    lastMessageAt = Date.now();
+    onMessage(msg);
+  });
+  c.on('close', () => c === conn && connectionLost());
+  c.on('error', () => c === conn && connectionLost());
+}
+
+function onPeerError(err) {
+  if (err.type === 'peer-unavailable' && target) {
+    if (target.silent) return connectionLost(); // TV:n laddas kanske om – försök igen
+    target = null;
+    setOverlay(null);
+    $('#join-error').textContent = 'Hittar inget spel med den koden.';
+    return;
+  }
+  if (!peer.open) {
+    // Kunde inte nå PeerJS-servern – börja om med en ny peer.
+    peer.destroy();
+    connectionLost();
+  }
+}
+
+function connectionLost() {
+  if (!target || !me) {
+    if (target) {
+      setOverlay(null);
+      $('#join-error').textContent = 'Kunde inte ansluta. Kontrollera internetanslutningen.';
+      target = null;
     }
-    me = res;
+    return;
+  }
+  setOverlay('Återansluter till spelet …');
+  clearTimeout(reconnectTimer);
+  reconnectTimer = setTimeout(() => connect(me.code, me.name, true), 2000);
+}
+
+// Håll kontakten vid liv och märk om TV:n slutar svara.
+setInterval(() => {
+  if (!conn || !conn.open) return;
+  send('ping');
+  if (me && Date.now() - lastMessageAt > 9000) connectionLost();
+}, 3000);
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && me && (!conn || !conn.open || Date.now() - lastMessageAt > 5000)) {
+    connect(me.code, me.name, true);
+  }
+});
+
+function onMessage(msg) {
+  if (msg.t === 'joined') {
+    me = { id: msg.id, name: msg.name, code: msg.code };
     localStorage.setItem('quizPlayer', JSON.stringify(me));
     $('#join-error').textContent = '';
     $('#join').classList.add('hidden');
     $('#game').classList.remove('hidden');
     $('#me-name').textContent = `👤 ${me.name}`;
-  });
+    setOverlay(null);
+  } else if (msg.t === 'error') {
+    setOverlay(null);
+    target = null;
+    $('#join-error').textContent = msg.error;
+    showJoin();
+  } else if (msg.t === 'state' && me) {
+    state = msg.state;
+    state.receivedAt = performance.now();
+    setOverlay(null);
+    render();
+  }
+}
+
+function setOverlay(text) {
+  const el = $('#overlay');
+  el.classList.toggle('hidden', !text);
+  if (text) $('#overlay-text').textContent = text;
 }
 
 function showJoin() {
@@ -32,23 +132,30 @@ function showJoin() {
   $('#join').classList.remove('hidden');
 }
 
+function leaveGame() {
+  send('leave');
+  localStorage.removeItem('quizPlayer');
+  target = null;
+  clearTimeout(reconnectTimer);
+  setOverlay(null);
+  showJoin();
+}
+
+$('#code-input').value = (params.get('r') || me?.code || '').toUpperCase();
+$('#name-input').value = me?.name || '';
+
 $('#join-form').addEventListener('submit', (e) => {
   e.preventDefault();
-  join($('#code-input').value.trim().toUpperCase(), $('#name-input').value.trim(), false);
+  $('#join-error').textContent = '';
+  const code = $('#code-input').value.trim().toUpperCase();
+  if (me && me.code !== code) me = null;
+  connect(code, $('#name-input').value.trim(), false);
 });
 
-// Återanslut automatiskt (t.ex. om telefonen låsts en stund).
-socket.on('connect', () => {
-  const code = (params.get('r') || '').toUpperCase();
-  if (me && (!code || code === me.code)) join(me.code, me.name, true);
-});
+$('#overlay-cancel').addEventListener('click', leaveGame);
 
-socket.on('state', (s) => {
-  if (!me) return;
-  state = s;
-  state.receivedAt = performance.now();
-  render();
-});
+// Var vi redan med i ett spel? Hoppa in igen direkt.
+if (me && (!params.get('r') || params.get('r').toUpperCase() === me.code)) connect(me.code, me.name, true);
 
 function myPlayer() {
   return state.players.find((p) => p.id === me.id);
@@ -78,8 +185,8 @@ function render() {
         </div>
         <button class="btn primary big" id="start">▶ Starta quizet</button>
         <p class="sub" style="text-align:center">${state.players.filter((x) => x.connected).length} spelare med</p>`;
-      renderSettings($('#settings'), state, (s) => socket.emit('settings', s));
-      $('#start').onclick = () => socket.emit('start');
+      renderSettings($('#settings'), state, (s) => send('settings', { settings: s }));
+      $('#start').onclick = () => send('start');
     } else {
       const leader = state.players.find((x) => x.id === state.leaderId);
       view.innerHTML = `
@@ -118,7 +225,7 @@ function render() {
         </div>`;
       view.querySelectorAll('.opt-btn').forEach((b) =>
         b.addEventListener('click', () => {
-          socket.emit('answer', Number(b.dataset.i));
+          send('answer', { choice: Number(b.dataset.i) });
           navigator.vibrate?.(30);
           view.querySelectorAll('.opt-btn').forEach((x) => (x.disabled = true));
           b.style.boxShadow = '0 0 0 4px #fff';
@@ -153,7 +260,7 @@ function render() {
         <div class="title">Du ligger på plats ${rank} av ${state.players.length}</div>
       </div>
       ${isLeader() ? `<button class="btn primary big" id="next">${last ? 'Visa resultatet 🏆' : 'Nästa fråga ▶'}</button>` : ''}`;
-    if (isLeader()) $('#next').onclick = () => socket.emit('next');
+    if (isLeader()) $('#next').onclick = () => send('next');
     return;
   }
 
@@ -168,11 +275,7 @@ function render() {
       </div>
       ${isLeader() ? '<button class="btn primary big" id="again">↻ Spela igen</button>' : '<p class="sub" style="text-align:center">Spelledaren kan starta en ny omgång.</p>'}
       <button class="btn big" id="leave">Lämna spelet</button>`;
-    if (isLeader()) $('#again').onclick = () => socket.emit('restart');
-    $('#leave').onclick = () => {
-      socket.emit('leave');
-      localStorage.removeItem('quizPlayer');
-      showJoin();
-    };
+    if (isLeader()) $('#again').onclick = () => send('restart');
+    $('#leave').onclick = leaveGame;
   }
 }

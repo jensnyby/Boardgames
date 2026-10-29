@@ -1,43 +1,32 @@
 // Telefoner som råkar öppna TV-adressen skickas till spelarsidan.
 if (matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600) {
-  location.replace('/spela' + location.search);
+  location.replace('spela.html' + location.search);
 }
 
-const socket = io();
 let state = null;
-let joinBase = location.origin;
 let tick = null;
 let phaseShown = null;
+let codeShown = null;
 
-fetch('/api/info')
-  .then((r) => r.json())
-  .then((info) => {
-    // Om TV-sidan öppnats via localhost (t.ex. Chromecast från datorn) behöver telefonerna datorns nätverksadress.
-    const local = ['localhost', '127.0.0.1', '::1', '[::1]'].includes(location.hostname);
-    if (local && info.ips.length) joinBase = `${location.protocol}//${info.ips[0]}:${location.port || info.port}`;
-    renderJoin();
-  });
-
-socket.on('connect', () => {
-  socket.emit('tv:open', { code: sessionStorage.getItem('tvRoom') }, ({ code }) => {
-    sessionStorage.setItem('tvRoom', code);
-    renderJoin();
-  });
-});
-
-socket.on('state', (s) => {
+const host = new QuizHost((s) => {
   state = s;
   state.receivedAt = performance.now();
   render();
 });
 
 function renderJoin() {
-  const code = sessionStorage.getItem('tvRoom');
-  if (!code) return;
-  const url = `${joinBase}/spela?r=${code}`;
-  $('#join-url').textContent = `${joinBase.replace(/^https?:\/\//, '')}/spela`;
-  $('#code').textContent = code;
-  $('#qr').src = `/qr.svg?text=${encodeURIComponent(url)}`;
+  $('#status').textContent = { online: '● Ansluten', connecting: '◌ Ansluter …', offline: '✕ Ingen internetanslutning' }[state.status];
+  $('#status').dataset.status = state.status;
+  if (codeShown === state.code) return;
+  codeShown = state.code;
+  const url = new URL(`spela.html?r=${state.code}`, location.href);
+  if (CUSTOM_PEER) url.searchParams.set('peer', CUSTOM_PEER);
+  $('#join-url').textContent = `${url.host}${url.pathname}`;
+  $('#code').textContent = state.code;
+  const qr = qrcode(0, 'M');
+  qr.addData(url.href);
+  qr.make();
+  $('#qr').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
 }
 
 function show(id) {
@@ -48,6 +37,7 @@ function render() {
   const changed = phaseShown !== state.phase;
   phaseShown = state.phase;
   clearInterval(tick);
+  renderJoin();
   if (state.phase === 'lobby') renderLobby(changed);
   if (state.phase === 'question') renderQuestion();
   if (state.phase === 'reveal') renderReveal(changed);
@@ -56,7 +46,7 @@ function render() {
 
 function renderLobby(changed) {
   show('lobby');
-  renderSettings($('#tv-settings'), state, (s) => socket.emit('settings', s));
+  renderSettings($('#tv-settings'), state, (s) => host.updateSettings(s));
   const players = state.players.filter((p) => p.connected);
   $('#player-title').textContent = `Spelare (${players.length})`;
   $('#players').innerHTML = players.length
@@ -147,9 +137,9 @@ function renderFinal(changed) {
   if (changed) $('#again').focus();
 }
 
-$('#start').addEventListener('click', () => socket.emit('start'));
-$('#next').addEventListener('click', () => socket.emit('next'));
-$('#again').addEventListener('click', () => socket.emit('restart'));
+$('#start').addEventListener('click', () => host.start());
+$('#next').addEventListener('click', () => host.next());
+$('#again').addEventListener('click', () => host.restart());
 $('#fullscreen').addEventListener('click', () => {
   if (document.fullscreenElement) document.exitFullscreen();
   else document.documentElement.requestFullscreen?.();
