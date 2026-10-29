@@ -1,0 +1,25 @@
+{
+  "name": "finland-quiz",
+  "version": "1.0.0",
+  "description": "Frågesport om Finland – TV-skärm + telefoner",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jensnyby/Boardgames.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jensnyby/Boardgames/issues"
+  },
+  "homepage": "https://github.com/jensnyby/Boardgames#readme",
+  "dependencies": {
+    "express": "^4.22.3",
+    "qrcode": "^1.5.4",
+    "socket.io": "^4.8.4"
+  },
+  "private": true
+}

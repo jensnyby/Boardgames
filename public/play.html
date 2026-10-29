@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#002f6c">
+  <title>Finland-quizet</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="phone">
+  <!-- Gå med -->
+  <section id="join" class="screen">
+    <h1><span class="flag"></span> Finland-quizet</h1>
+    <p class="sub">Gå med i spelet som visas på TV:n.</p>
+    <form id="join-form" class="card" autocomplete="off">
+      <div>
+        <label for="code-input">Spelkod</label>
+        <input id="code-input" maxlength="4" inputmode="text" autocapitalize="characters" placeholder="ABCD" required>
+      </div>
+      <div>
+        <label for="name-input">Ditt namn</label>
+        <input id="name-input" maxlength="16" placeholder="T.ex. Mormor" required>
+      </div>
+      <p class="error" id="join-error"></p>
+      <button class="btn primary big" type="submit">Gå med</button>
+    </form>
+  </section>
+
+  <!-- Spelvy -->
+  <section id="game" class="screen hidden">
+    <div class="me-bar">
+      <span class="chip" id="me-name"></span>
+      <span class="chip" id="me-score"></span>
+    </div>
+    <div id="view" style="flex:1;display:flex;flex-direction:column;gap:16px"></div>
+  </section>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/common.js"></script>
+  <script src="/play.js"></script>
+</body>
+</html>

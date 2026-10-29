@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Finland-quizet – TV</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="tv">
+  <!-- Lobby -->
+  <section id="lobby" class="screen">
+    <header class="tv-header">
+      <div class="logo"><span class="flag"></span> Finland-quizet</div>
+      <button class="btn" id="fullscreen">⛶ Helskärm</button>
+    </header>
+    <div class="lobby">
+      <div class="panel">
+        <h2>Inställningar</h2>
+        <div id="tv-settings" style="display:flex;flex-direction:column;gap:1.1em"></div>
+        <div style="margin-top:auto;display:flex;align-items:center;gap:1em">
+          <button class="btn primary" id="start" style="font-size:1.3em">▶ Starta quizet</button>
+          <span id="start-hint" class="empty"></span>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Gå med från telefonen</h2>
+        <div class="join">
+          <img id="qr" alt="QR-kod för att gå med">
+          <div>
+            <div class="url">Skanna QR-koden eller gå till<br><strong id="join-url"></strong></div>
+            <div style="margin-top:.6em;color:var(--muted)">Spelkod</div>
+            <div class="code" id="code">····</div>
+          </div>
+        </div>
+        <h2 id="player-title">Spelare</h2>
+        <div class="player-grid" id="players"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Fråga -->
+  <section id="question" class="screen hidden">
+    <div class="q-meta">
+      <span class="chip" id="q-num"></span>
+      <span class="chip" id="q-cat"></span>
+    </div>
+    <div class="q-text" id="q-text"></div>
+    <div class="timer">
+      <div class="timer-bar"><div id="timer-fill"></div></div>
+      <div class="timer-num" id="timer-num"></div>
+    </div>
+    <div class="options" id="q-options"></div>
+    <div class="answered" id="q-answered"></div>
+  </section>
+
+  <!-- Rätt svar + ställning -->
+  <section id="reveal" class="screen hidden">
+    <div class="q-meta">
+      <span class="chip" id="r-num"></span>
+      <span class="chip" id="r-cat"></span>
+    </div>
+    <div class="reveal-grid">
+      <div>
+        <div class="q-text" id="r-text"></div>
+        <div class="options" id="r-options"></div>
+      </div>
+      <div class="panel">
+        <h2>Ställning</h2>
+        <div class="board" id="r-board"></div>
+      </div>
+    </div>
+    <div class="footer-bar">
+      <span id="r-countdown"></span>
+      <button class="btn primary" id="next">Nästa ▶</button>
+    </div>
+  </section>
+
+  <!-- Slutresultat -->
+  <section id="final" class="screen hidden">
+    <header class="tv-header">
+      <div class="logo">🏆 Slutresultat</div>
+      <button class="btn primary" id="again">↻ Spela igen</button>
+    </header>
+    <div class="podium" id="podium"></div>
+    <div class="board" id="final-rest" style="flex-direction:row;flex-wrap:wrap;justify-content:center"></div>
+  </section>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/common.js"></script>
+  <script src="/tv.js"></script>
+</body>
+</html>
