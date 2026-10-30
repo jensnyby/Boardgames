@@ -72,6 +72,27 @@ function renderSettings(el, state, emit) {
   }
 }
 
+// Knapp som måste tryckas två gånger, så att ingen avslutar spelet av misstag.
+function confirmButton(btn, onConfirm) {
+  const label = btn.textContent;
+  let timer = null;
+  btn.addEventListener('click', () => {
+    if (btn.dataset.armed) {
+      delete btn.dataset.armed;
+      clearTimeout(timer);
+      btn.textContent = label;
+      onConfirm();
+      return;
+    }
+    btn.dataset.armed = '1';
+    btn.textContent = 'Säker? Tryck igen';
+    timer = setTimeout(() => {
+      delete btn.dataset.armed;
+      btn.textContent = label;
+    }, 4000);
+  });
+}
+
 function categoryLabel(state) {
   const c = state.categories.find((x) => x.id === state.settings.category);
   return c ? `${c.icon} ${c.name}` : '';

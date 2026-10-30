@@ -191,6 +191,7 @@ class QuizHost {
     else if (msg.t === 'start') this.start();
     else if (msg.t === 'next') this.next();
     else if (msg.t === 'restart') this.restart();
+    else if (msg.t === 'end') this.end();
   }
 
   join(conn, { name, id }) {
@@ -331,6 +332,15 @@ class QuizHost {
 
   next() {
     if (this.room.phase === 'reveal') this.startQuestion();
+  }
+
+  // Avsluta spelet i förtid och visa slutresultatet med poängen hittills.
+  end() {
+    const room = this.room;
+    if (room.phase !== 'question' && room.phase !== 'reveal') return;
+    clearTimeout(this.timer);
+    room.phase = 'final';
+    this.broadcast();
   }
 
   restart() {

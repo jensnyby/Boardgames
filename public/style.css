@@ -203,6 +203,11 @@ body.tv {
 .board-row .score { font-weight: 900; font-variant-numeric: tabular-nums; }
 .board-row.off { opacity: .45; }
 
+.end-btn { font-size: .85em; }
+.end-btn[data-armed] { background: var(--bad); color: var(--white); }
+.tv .q-meta .end-btn { margin-left: auto; }
+.phone .end-btn { align-self: flex-end; padding: .45em .9em; }
+
 .answer-banner {
   display: inline-block; margin: -.4em 0 1em; padding: .4em .9em; border-radius: 12px;
   background: var(--good); color: #04220f; font-size: 1.3em; font-weight: 800;

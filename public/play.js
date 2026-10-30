@@ -153,6 +153,7 @@ $('#join-form').addEventListener('submit', (e) => {
 });
 
 $('#overlay-cancel').addEventListener('click', leaveGame);
+confirmButton($('#end-btn'), () => send('end'));
 
 // Var vi redan med i ett spel? Hoppa in igen direkt.
 if (me && (!params.get('r') || params.get('r').toUpperCase() === me.code)) connect(me.code, me.name, true);
@@ -169,6 +170,7 @@ function render() {
   const p = myPlayer();
   if (!p) return;
   $('#me-score').textContent = `⭐ ${p.score} p`;
+  $('#end-btn').classList.toggle('hidden', !isLeader() || !['question', 'reveal'].includes(state.phase));
   const view = $('#view');
   const key = `${state.phase}|${state.question?.number}|${p.answered}`;
   const fresh = key !== lastRendered;

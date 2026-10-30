@@ -240,6 +240,8 @@ function openRecap(page) {
 $('#start').addEventListener('click', () => host.start());
 $('#next').addEventListener('click', () => host.next());
 $('#again').addEventListener('click', () => host.restart());
+confirmButton($('#q-end'), () => host.end());
+confirmButton($('#r-end'), () => host.end());
 $('#recap-btn').addEventListener('click', () => openRecap(0));
 $('#recap-prev').addEventListener('click', () => openRecap(recapPage - 1));
 $('#recap-next').addEventListener('click', () => openRecap(recapPage + 1));

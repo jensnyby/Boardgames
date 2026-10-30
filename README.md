@@ -47,6 +47,8 @@ Det går också att casta en Chrome-flik från en dator (⋮ → *Casta…* → 
 6. Efter varje fråga visas rätt svar och ställningen. Nästa fråga kommer automatiskt efter 12 sekunder (eller när spelledaren trycker *Nästa*).
 7. Till sist visas prispallen. Med **📋 Rätta svar** går man igenom alla frågor med rätt svar och hur många som svarade rätt. På telefonen ser var och en sina egna svar markerade med ✅ eller ❌. *Spela igen* tar alla tillbaka till lobbyn.
 
+Vill ni sluta i förtid trycker ni **⏹ Avsluta** på TV:n eller på spelledarens telefon, och trycker igen för att bekräfta. Spelet hoppar då till slutresultatet med poängen hittills.
+
 Om en telefon låser sig eller tappar anslutningen går den automatiskt tillbaka in i spelet med samma poäng. Även TV-sidan kan laddas om mitt i spelet utan att något försvinner.
 
 ## 🎧 Gissa låten
