@@ -130,8 +130,8 @@ body.tv {
 .panel h2 { margin: 0; font-size: 1.15em; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
 
 .join { display: flex; gap: 1.5em; align-items: center; }
-.tv .cats { grid-template-columns: repeat(3, 1fr); }
-.tv .cat { padding: .6em .4em; }
+.tv .cats { grid-template-columns: repeat(5, 1fr); gap: .5em; }
+.tv .cat { padding: .5em .3em; font-size: .85em; hyphens: manual; }
 .join .qr { width: 13em; height: 13em; border-radius: 14px; background: #fff; padding: .4em; flex: none; }
 .join .qr svg { width: 100%; height: 100%; display: block; }
 #status { font-size: .8em; color: var(--muted); }

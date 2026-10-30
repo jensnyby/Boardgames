@@ -2,7 +2,7 @@
 
 En frågesport för hela sällskapet: frågorna visas på TV:n (t.ex. Google TV) och alla svarar från sina egna telefoner.
 
-**Kategorier** (30 frågor var): Finlands historia · Finlands geografi · Finlands natur · Musik · 🎧 Gissa låten · eller **Blandat** (alla 150).
+**Kategorier** (30 frågor var): Finlands historia · Finlands geografi · Finlands natur · Musik · Första hjälpen · Mat · Transportbokning · Plastprofiltillverkning · 🎧 Gissa låten · eller **Blandat** (alla 270).
 Man väljer kategori, antal frågor och tid per fråga innan spelet startar.
 
 ## Kom igång
