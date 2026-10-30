@@ -170,9 +170,7 @@ class QuizHost {
     p.connected = false;
     if (this.room.phase === 'lobby') this.room.players.delete(p.id);
     this.ensureLeader();
-    const active = this.connectedPlayers();
-    if (this.room.phase === 'question' && active.length && active.every((o) => o.answer !== null)) this.reveal();
-    else this.broadcast();
+    this.broadcast();
   }
 
   send(conn, msg) {
@@ -303,8 +301,8 @@ class QuizHost {
     // Rätt svar ger 500 poäng + upp till 500 bonus för snabbhet.
     p.lastGain = p.lastCorrect ? 500 + Math.round(500 * Math.max(0, 1 - elapsed / durationMs)) : 0;
     p.score += p.lastGain;
-    if (this.connectedPlayers().every((o) => o.answer !== null)) this.reveal();
-    else this.broadcast();
+    // Rätt svar visas först när tiden är ute, även om alla redan har svarat.
+    this.broadcast();
   }
 
   reveal() {
@@ -333,7 +331,6 @@ class QuizHost {
 
   next() {
     if (this.room.phase === 'reveal') this.startQuestion();
-    else if (this.room.phase === 'question') this.reveal();
   }
 
   restart() {
