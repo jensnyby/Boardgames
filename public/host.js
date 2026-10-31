@@ -34,11 +34,11 @@ function pickQuestions(category, count) {
     picked = shuffle(picked);
   } else {
     // Några extra låtar ifall något klipp inte går att hitta.
-    const extra = category === 'gissa' ? 6 : 0;
+    const extra = isSongCategory(category) ? 6 : 0;
     picked = shuffle(QUESTIONS[category]).slice(0, count + extra).map((q) => ({ ...q, cat: category }));
   }
   return picked.map((q) => {
-    if (q.cat === 'gissa') return songQuestion(q);
+    if (q.artist) return songQuestion(q);
     if (q.clues) {
       const options = shuffle([q.a, ...q.w]);
       return { text: 'Vart är vi på väg?', options, correct: options.indexOf(q.a), cat: q.cat, clues: q.clues };
@@ -48,8 +48,13 @@ function pickQuestions(category, count) {
   });
 }
 
+// Låtkategorier har poster med artist och titel i stället för fråga och svar.
+function isSongCategory(id) {
+  return !!QUESTIONS[id]?.[0]?.artist;
+}
+
 function songQuestion(song) {
-  const others = QUESTIONS.gissa.filter((s) => s.artist !== song.artist);
+  const others = QUESTIONS[song.cat].filter((s) => s.artist !== song.artist);
   const askArtist = Math.random() < 0.4;
   const field = askArtist ? 'artist' : 'title';
   const wrong = shuffle([...new Set(others.map((s) => s[field]))]).slice(0, 3);
@@ -58,7 +63,7 @@ function songQuestion(song) {
     text: askArtist ? 'Vem framför låten?' : 'Vad heter låten?',
     options,
     correct: options.indexOf(song[field]),
-    cat: 'gissa',
+    cat: song.cat,
     song: { artist: song.artist, title: song.title },
   };
 }

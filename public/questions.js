@@ -15,7 +15,8 @@ const CATEGORIES = {
   tillsyn: { name: 'Inspektion i Österbottens välfärdsområde', short: 'Inspektion Öster\u00adbotten', icon: '🔎' },
   sport: { name: 'Sport', icon: '⚽' },
   spar: { name: 'På spåret', icon: '🚂' },
-  gissa: { name: 'Gissa låten', icon: '🎧' },
+  gissa: { name: 'Gissa låten', short: 'Gissa låten Finland', icon: '🎧' },
+  gissaint: { name: 'Gissa låten – internationellt', short: 'Gissa låten inter\u00adnationellt', icon: '🌍' },
 };
 
 const QUESTIONS = {
@@ -449,6 +450,40 @@ const QUESTIONS = {
     { artist: 'Reijo Taipale', title: 'Satumaa' },
     { artist: 'Loituma', title: 'Ievan polkka' },
     { artist: 'Frederik', title: 'Tsingis Khan' },
+  ],
+
+  // Gissa låten – internationellt: kända hits från hela världen.
+  gissaint: [
+    { artist: 'ABBA', title: 'Dancing Queen' },
+    { artist: 'Queen', title: 'Bohemian Rhapsody' },
+    { artist: 'Michael Jackson', title: 'Billie Jean' },
+    { artist: 'Madonna', title: 'Like a Prayer' },
+    { artist: 'The Beatles', title: 'Hey Jude' },
+    { artist: 'Elvis Presley', title: 'Jailhouse Rock' },
+    { artist: 'Whitney Houston', title: 'I Will Always Love You' },
+    { artist: 'Toto', title: 'Africa' },
+    { artist: 'a-ha', title: 'Take On Me' },
+    { artist: 'Nirvana', title: 'Smells Like Teen Spirit' },
+    { artist: 'Oasis', title: 'Wonderwall' },
+    { artist: 'Adele', title: 'Rolling in the Deep' },
+    { artist: 'Ed Sheeran', title: 'Shape of You' },
+    { artist: 'Avicii', title: 'Wake Me Up' },
+    { artist: 'Roxette', title: 'The Look' },
+    { artist: 'Europe', title: 'The Final Countdown' },
+    { artist: 'Bon Jovi', title: "Livin' on a Prayer" },
+    { artist: 'Survivor', title: 'Eye of the Tiger' },
+    { artist: 'Gloria Gaynor', title: 'I Will Survive' },
+    { artist: 'Bee Gees', title: "Stayin' Alive" },
+    { artist: 'Pharrell Williams', title: 'Happy' },
+    { artist: 'Mark Ronson', title: 'Uptown Funk' },
+    { artist: 'Lady Gaga', title: 'Poker Face' },
+    { artist: 'Britney Spears', title: '...Baby One More Time' },
+    { artist: 'Coldplay', title: 'Viva la Vida' },
+    { artist: 'Taylor Swift', title: 'Shake It Off' },
+    { artist: 'Dua Lipa', title: 'Levitating' },
+    { artist: 'The Weeknd', title: 'Blinding Lights' },
+    { artist: 'Eurythmics', title: 'Sweet Dreams' },
+    { artist: 'Rick Astley', title: 'Never Gonna Give You Up' },
   ],
 };
 

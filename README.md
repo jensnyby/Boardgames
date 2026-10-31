@@ -2,7 +2,7 @@
 
 En frågesport för hela sällskapet: frågorna visas på TV:n (t.ex. Google TV) och alla svarar från sina egna telefoner.
 
-**Kategorier** (30 frågor var): Finlands historia · Finlands geografi · Finlands natur · Musik · Första hjälpen · Mat · Transportbokning · Plastprofiltillverkning · Framtidens sjöfartsbränslen · Inspektion i Österbottens välfärdsområde · Sport · 🚂 På spåret · 🎧 Gissa låten · eller **Blandat** (alla 390).
+**Kategorier** (30 frågor var): Finlands historia · Finlands geografi · Finlands natur · Musik · Första hjälpen · Mat · Transportbokning · Plastprofiltillverkning · Framtidens sjöfartsbränslen · Inspektion i Österbottens välfärdsområde · Sport · 🚂 På spåret · 🎧 Gissa låten (Finland) · 🌍 Gissa låten – internationellt · eller **Blandat** (alla 420).
 Man väljer kategori, antal frågor och tid per fråga innan spelet startar.
 
 ## Kom igång
@@ -61,12 +61,12 @@ Som i TV-programmet: vart är vi på väg? TV:n visar fem ledtrådar om en stad 
 
 ## 🎧 Gissa låten
 
-TV:n spelar ett 30 sekunders klipp av en finländsk låt, och spelarna gissar vad låten heter eller vem som framför den. Efter frågan visas låten med skivomslag.
+TV:n spelar ett 30 sekunders klipp av en låt (finländsk eller internationell, beroende på kategori), och spelarna gissar vad låten heter eller vem som framför den. Efter frågan visas låten med skivomslag.
 
 - Klippen hämtas från **Apples gratis förhandslyssning** (iTunes sök-API). Inget konto behövs.
 - Webbläsare får bara spela ljud efter ett knapptryck. Tryck på **🔇 Slå på ljudet** på TV:n (eller valfri knapp med fjärrkontrollen) innan ni startar. Om ljudet ändå blockeras visas knappen *▶ Spela upp låten*.
 - Låtar som inte hittas hoppas över automatiskt.
-- Låtlistan finns under `gissa` i [`public/questions.js`](public/questions.js) och har formen `{ artist: 'Käärijä', title: 'Cha Cha Cha' }`. Artistnamn och titel ska skrivas som på Apple Music.
+- Låtlistorna finns under `gissa` (Finland) och `gissaint` (internationellt) i [`public/questions.js`](public/questions.js) och har formen `{ artist: 'Käärijä', title: 'Cha Cha Cha' }`. Artistnamn och titel ska skrivas som på Apple Music.
 
 Spotify fungerar inte här: Spotifys regler för utvecklare förbjuder spel och frågesporter med Spotifys musik, och nya appar får inte längre tillgång till Spotifys ljudklipp.
 
