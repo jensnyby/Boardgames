@@ -22,7 +22,8 @@ function questionsFor(id, level = 0) {
 function categoryInfo(level = 0) {
   const cats = Object.entries(CATEGORIES).map(([id, c]) => ({ id, ...c, count: questionsFor(id, level).length }));
   const total = cats.reduce((s, c) => s + c.count, 0);
-  return [...cats, { id: 'blandat', name: 'Blandat', icon: '🎲', count: total }];
+  // Dolda kategorier (t.ex. Allmänbildning) ingår bara i Blandat.
+  return [...cats.filter((c) => !c.hidden), { id: 'blandat', name: 'Blandat', icon: '🎲', count: total }];
 }
 
 function pickQuestions(category, count, level = 0) {
