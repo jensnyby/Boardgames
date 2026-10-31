@@ -21,7 +21,14 @@ preload.preload = 'auto';
 let soundUnlocked = false;
 let audioKey = null;
 
+const bgMusic = new BackgroundMusic();
+let musicOn = true;
+try {
+  musicOn = localStorage.getItem('bgMusic') !== 'off';
+} catch {}
+
 function unlockSound() {
+  bgMusic.unlock();
   if (soundUnlocked) return;
   soundUnlocked = true;
   if (!audioKey) {
@@ -67,6 +74,23 @@ function playAudio() {
 }
 
 $('#play-btn').addEventListener('click', playAudio);
+
+// Bakgrundsmusik under frågor och rätt svar, men inte när Gissa låten spelar sitt klipp.
+function updateMusic() {
+  const playing = musicOn && soundUnlocked && ['question', 'reveal'].includes(state.phase) && !currentSong();
+  bgMusic.setPlaying(playing);
+  for (const btn of document.querySelectorAll('.music-btn')) btn.textContent = musicOn ? '🎵 Musik på' : '🔇 Musik av';
+}
+
+for (const btn of document.querySelectorAll('.music-btn')) {
+  btn.addEventListener('click', () => {
+    musicOn = !musicOn;
+    try {
+      localStorage.setItem('bgMusic', musicOn ? 'on' : 'off');
+    } catch {}
+    if (state) render();
+  });
+}
 $('#r-art').addEventListener('error', () => $('#r-art').classList.add('hidden'));
 
 function renderJoin() {
@@ -94,6 +118,7 @@ function render() {
   clearInterval(tick);
   renderJoin();
   syncAudio();
+  updateMusic();
   if (state.phase === 'lobby') renderLobby(changed);
   if (state.phase === 'question') renderQuestion();
   if (state.phase === 'reveal') renderReveal(changed);
@@ -119,7 +144,7 @@ function renderLobby(changed) {
       ? `${state.settings.count} frågor · ${categoryLabel(state)}`
       : 'Minst en spelare behövs';
   const usesSongs = ['gissa', 'blandat'].includes(state.settings.category);
-  $('#sound-btn').classList.toggle('hidden', !usesSongs || soundUnlocked);
+  $('#sound-btn').classList.toggle('hidden', !(usesSongs || musicOn) || soundUnlocked);
   if (changed) $('#start').focus();
 }
 

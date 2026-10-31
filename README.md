@@ -51,6 +51,10 @@ Vill ni sluta i förtid trycker ni **⏹ Avsluta** på TV:n eller på spelledare
 
 Om en telefon låser sig eller tappar anslutningen går den automatiskt tillbaka in i spelet med samma poäng. Även TV-sidan kan laddas om mitt i spelet utan att något försvinner.
 
+## 🎵 Bakgrundsmusik
+
+Under frågorna spelar TV:n en glad slinga som skapas direkt i webbläsaren (inga musikfiler). Den pausas medan Gissa låten spelar sitt klipp. Slå av och på med **🎵 Musik på/av** i lobbyn eller under spelet; valet sparas på TV:n. Precis som för Gissa låten måste man trycka på **🔇 Slå på ljudet** (eller valfri knapp) på TV:n innan ljudet får spelas.
+
 ## 🚂 På spåret
 
 Som i TV-programmet: vart är vi på väg? TV:n visar fem ledtrådar om en stad någonstans i världen, en ny var 8:e sekund, från svår till lätt. Svarar man rätt redan på första ledtråden får man 1000 poäng, sedan 800, 600, 400 och 200. Varje fråga tar 40 sekunder oavsett inställd tid.
@@ -85,6 +89,7 @@ Svarsalternativen blandas automatiskt. Det går att lägga till fler frågor i e
 | `public/spela.html`, `public/play.js` | Telefonernas vy |
 | `public/questions.js` | Frågebanken och låtlistan |
 | `public/songs.js` | Hämtar ljudklipp till Gissa låten |
+| `public/music.js` | Bakgrundsmusiken |
 | `public/common.js`, `public/style.css` | Delad kod och utseende |
 | `public/vendor/` | PeerJS och QR-kodsbibliotek |
 | `server.js` | Valfri lokal webbserver |

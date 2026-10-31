@@ -214,7 +214,7 @@ body.tv {
 
 .end-btn { font-size: .85em; }
 .end-btn[data-armed] { background: var(--bad); color: var(--white); }
-.tv .q-meta .end-btn { margin-left: auto; }
+.tv .q-meta .music-btn { margin-left: auto; }
 .phone .end-btn { align-self: flex-end; padding: .45em .9em; }
 
 .answer-banner {

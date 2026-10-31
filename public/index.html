@@ -11,7 +11,7 @@
   <section id="lobby" class="screen">
     <header class="tv-header">
       <div class="logo"><span class="flag"></span> Finland-quizet</div>
-      <span style="display:flex;gap:.8em;align-items:center"><span class="chip" id="status"></span><button class="btn" id="fullscreen">⛶ Helskärm</button></span>
+      <span style="display:flex;gap:.8em;align-items:center"><span class="chip" id="status"></span><button class="btn music-btn">🎵 Musik på</button><button class="btn" id="fullscreen">⛶ Helskärm</button></span>
     </header>
     <div class="lobby">
       <div class="panel">
@@ -44,6 +44,7 @@
     <div class="q-meta">
       <span class="chip" id="q-num"></span>
       <span class="chip" id="q-cat"></span>
+      <button class="btn end-btn music-btn" id="q-music">🎵 Musik på</button>
       <button class="btn end-btn" id="q-end">⏹ Avsluta</button>
     </div>
     <div class="q-text" id="q-text"></div>
@@ -124,6 +125,7 @@
   <script src="common.js"></script>
   <script src="songs.js"></script>
   <script src="host.js"></script>
+  <script src="music.js"></script>
   <script src="tv.js"></script>
 </body>
 </html>
