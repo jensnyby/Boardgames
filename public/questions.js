@@ -17,8 +17,8 @@ const CATEGORIES = {
   spar: { name: 'På spåret', icon: '🚂' },
   gissa: { name: 'Gissa låten', short: 'Låtar Finland', icon: '🎧' },
   gissaint: { name: 'Gissa låten – internationellt', short: 'Låtar världen', icon: '🌍' },
-  // Används bara i Blandat och visas inte som egen ruta.
-  allmant: { name: 'Allmänbildning', icon: '💡', hidden: true },
+  // Frågorna i Blandat. Visas inte som egen ruta.
+  allmant: { name: 'Blandat', icon: '🎲', hidden: true },
 };
 
 const QUESTIONS = {
@@ -628,7 +628,7 @@ const QUESTIONS = {
     { d: 1, artist: 'Rick Astley', title: 'Never Gonna Give You Up' },
   ],
 
-  // Allmänbildning: blandade frågor som bara ingår i Blandat.
+  // Blandat: allmänbildningsfrågor som bara används i Blandat.
   allmant: [
     { d: 1, q: 'Vilken planet ligger närmast solen?', a: 'Merkurius', w: ['Venus', 'Mars', 'Jorden'] },
     { d: 1, q: 'Vilken är solsystemets största planet?', a: 'Jupiter', w: ['Saturnus', 'Neptunus', 'Jorden'] },

@@ -2,7 +2,7 @@
 
 En frågesport för hela sällskapet: frågorna visas på TV:n (t.ex. Google TV) och alla svarar från sina egna telefoner.
 
-**Kategorier** (30 frågor var, Finlands historia och geografi 100 var): Finlands historia · Finlands geografi · Finlands natur · Musik · Första hjälpen · Mat · Transportbokning · Plastprofiltillverkning · Framtidens sjöfartsbränslen · Inspektion i Österbottens välfärdsområde · Sport · 🚂 På spåret · 🎧 Gissa låten (Finland) · 🌍 Gissa låten – internationellt · eller **Blandat** (alla 660, inklusive 100 allmänbildningsfrågor som bara finns i Blandat).
+**Kategorier** (30 frågor var, Finlands historia och geografi 100 var): Finlands historia · Finlands geografi · Finlands natur · Musik · Första hjälpen · Mat · Transportbokning · Plastprofiltillverkning · Framtidens sjöfartsbränslen · Inspektion i Österbottens välfärdsområde · Sport · 🚂 På spåret · 🎧 Gissa låten (Finland) · 🌍 Gissa låten – internationellt · eller **Blandat** (100 egna allmänbildningsfrågor om rymden, naturvetenskap, världen, historia, konst och teknik).
 Man väljer kategori, svårighetsgrad (🟢 Lätt, 🟡 Medel, 🔴 Svår eller Alla), antal frågor och tid per fråga innan spelet startar. Varje kategori har 10 frågor per svårighetsgrad.
 
 ## Kom igång

@@ -21,23 +21,14 @@ function questionsFor(id, level = 0) {
 
 function categoryInfo(level = 0) {
   const cats = Object.entries(CATEGORIES).map(([id, c]) => ({ id, ...c, count: questionsFor(id, level).length }));
-  const total = cats.reduce((s, c) => s + c.count, 0);
-  // Dolda kategorier (t.ex. Allmänbildning) ingår bara i Blandat.
-  return [...cats.filter((c) => !c.hidden), { id: 'blandat', name: 'Blandat', icon: '🎲', count: total }];
+  // Blandat består bara av de egna allmänbildningsfrågorna, som inte visas som egen ruta.
+  return [...cats.filter((c) => !c.hidden), { id: 'blandat', name: 'Blandat', icon: '🎲', count: questionsFor('allmant', level).length }];
 }
 
 function pickQuestions(category, count, level = 0) {
   let picked;
   if (category === 'blandat') {
-    // Turvis ur varje kategori så att blandningen blir jämn.
-    const pools = Object.keys(QUESTIONS).map((id) => shuffle(questionsFor(id, level)).map((q) => ({ ...q, cat: id })));
-    picked = [];
-    for (let i = 0; picked.length < count; i++) {
-      for (const pool of shuffle(pools)) {
-        if (pool[i] && picked.length < count) picked.push(pool[i]);
-      }
-    }
-    picked = shuffle(picked);
+    picked = shuffle(questionsFor('allmant', level)).slice(0, count).map((q) => ({ ...q, cat: 'allmant' }));
   } else {
     // Några extra låtar ifall något klipp inte går att hitta.
     const extra = isSongCategory(category) ? 6 : 0;

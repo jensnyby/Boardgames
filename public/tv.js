@@ -143,7 +143,7 @@ function renderLobby(changed) {
     : players.length
       ? `${state.settings.count} frågor · ${categoryLabel(state)}`
       : 'Minst en spelare behövs';
-  const usesSongs = state.settings.category === 'blandat' || isSongCategory(state.settings.category);
+  const usesSongs = isSongCategory(state.settings.category);
   $('#sound-btn').classList.toggle('hidden', !(usesSongs || musicOn) || soundUnlocked);
   if (changed) $('#start').focus();
 }
