@@ -82,7 +82,7 @@ button {
   text-align: center;
 }
 .cat .icon { font-size: 1.8em; }
-.cat .name { font-weight: 700; font-size: .95em; }
+.cat .name { font-weight: 700; font-size: .95em; overflow-wrap: anywhere; }
 .cat .count { font-size: .75em; color: var(--muted); }
 .cat.selected { background: rgba(255, 255, 255, .25); border-color: var(--white); }
 
