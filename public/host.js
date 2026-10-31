@@ -14,17 +14,22 @@ function shuffle(arr) {
   return a;
 }
 
-function categoryInfo() {
-  const cats = Object.entries(CATEGORIES).map(([id, c]) => ({ id, ...c, count: QUESTIONS[id].length }));
+// Frågor i en kategori som matchar vald svårighetsgrad (0 = alla).
+function questionsFor(id, level = 0) {
+  return level ? QUESTIONS[id].filter((q) => q.d === level) : QUESTIONS[id];
+}
+
+function categoryInfo(level = 0) {
+  const cats = Object.entries(CATEGORIES).map(([id, c]) => ({ id, ...c, count: questionsFor(id, level).length }));
   const total = cats.reduce((s, c) => s + c.count, 0);
   return [...cats, { id: 'blandat', name: 'Blandat', icon: '🎲', count: total }];
 }
 
-function pickQuestions(category, count) {
+function pickQuestions(category, count, level = 0) {
   let picked;
   if (category === 'blandat') {
     // Turvis ur varje kategori så att blandningen blir jämn.
-    const pools = Object.keys(QUESTIONS).map((id) => shuffle(QUESTIONS[id]).map((q) => ({ ...q, cat: id })));
+    const pools = Object.keys(QUESTIONS).map((id) => shuffle(questionsFor(id, level)).map((q) => ({ ...q, cat: id })));
     picked = [];
     for (let i = 0; picked.length < count; i++) {
       for (const pool of shuffle(pools)) {
@@ -35,16 +40,15 @@ function pickQuestions(category, count) {
   } else {
     // Några extra låtar ifall något klipp inte går att hitta.
     const extra = isSongCategory(category) ? 6 : 0;
-    picked = shuffle(QUESTIONS[category]).slice(0, count + extra).map((q) => ({ ...q, cat: category }));
+    picked = shuffle(questionsFor(category, level)).slice(0, count + extra).map((q) => ({ ...q, cat: category }));
   }
   return picked.map((q) => {
-    if (q.artist) return songQuestion(q);
-    if (q.clues) {
-      const options = shuffle([q.a, ...q.w]);
-      return { text: 'Vart är vi på väg?', options, correct: options.indexOf(q.a), cat: q.cat, clues: q.clues };
-    }
+    if (q.artist) return { ...songQuestion(q), level: q.d };
     const options = shuffle([q.a, ...q.w]);
-    return { text: q.q, options, correct: options.indexOf(q.a), cat: q.cat };
+    if (q.clues) {
+      return { text: 'Vart är vi på väg?', options, correct: options.indexOf(q.a), cat: q.cat, clues: q.clues, level: q.d };
+    }
+    return { text: q.q, options, correct: options.indexOf(q.a), cat: q.cat, level: q.d };
   });
 }
 
@@ -93,7 +97,7 @@ class QuizHost {
       code: newCode(),
       players: new Map(),
       leaderId: null,
-      settings: { category: 'blandat', count: 10, time: 20 },
+      settings: { category: 'blandat', count: 10, time: 20, level: 0 },
       phase: 'lobby', // lobby | question | reveal | final
       questions: [],
       index: -1,
@@ -253,7 +257,8 @@ class QuizHost {
     const room = this.room;
     if (room.phase !== 'lobby') return;
     room.error = null;
-    const cats = categoryInfo();
+    if ([0, 1, 2, 3].includes(s.level)) room.settings.level = s.level;
+    const cats = categoryInfo(room.settings.level);
     const cat = cats.find((c) => c.id === s.category);
     if (cat) room.settings.category = cat.id;
     if (TIME_OPTIONS.includes(s.time)) room.settings.time = s.time;
@@ -269,7 +274,7 @@ class QuizHost {
     room.loading = true;
     room.error = null;
     this.broadcast();
-    const questions = await attachClips(pickQuestions(room.settings.category, room.settings.count), room.settings.count);
+    const questions = await attachClips(pickQuestions(room.settings.category, room.settings.count, room.settings.level), room.settings.count);
     room.loading = false;
     if (room.phase !== 'lobby') return;
     if (questions.length === 0) {
@@ -403,7 +408,7 @@ class QuizHost {
       leaderId: room.leaderId,
       loading: !!room.loading,
       error: room.error || null,
-      categories: categoryInfo(),
+      categories: categoryInfo(room.settings.level),
       players: players
         .map((p) => ({
           id: p.id,
@@ -427,6 +432,7 @@ class QuizHost {
         category: CATEGORIES[q.cat],
         duration: this.durationMs(q) / 1000,
         hasAudio: !!q.song,
+        level: q.level,
         remainingMs: Math.max(0, room.questionStart + this.durationMs(q) - Date.now()),
       };
       if (q.clues) {
@@ -465,6 +471,7 @@ class QuizHost {
       const saved = JSON.parse(sessionStorage.getItem(STORE_KEY));
       if (!saved) return null;
       saved.loading = false;
+      saved.settings.level = saved.settings.level || 0;
       saved.players = new Map(saved.players.map((p) => [p.id, { ...p, connected: false, conn: null }]));
       return saved;
     } catch {

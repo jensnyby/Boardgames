@@ -3,6 +3,17 @@
 const OPT_CLASSES = ['opt-a', 'opt-b', 'opt-c', 'opt-d'];
 const OPT_SHAPES = ['▲', '◆', '●', '■'];
 const TIME_OPTIONS = [10, 15, 20, 30];
+const LEVELS = [
+  { id: 0, name: 'Alla' },
+  { id: 1, name: 'Lätt', icon: '🟢' },
+  { id: 2, name: 'Medel', icon: '🟡' },
+  { id: 3, name: 'Svår', icon: '🔴' },
+];
+
+function levelLabel(id) {
+  const l = LEVELS.find((x) => x.id === id);
+  return l && l.id ? `${l.icon} ${l.name}` : '';
+}
 
 function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -41,6 +52,12 @@ function renderSettings(el, state, emit) {
       </span>
     </div>
     <div class="setting-row">
+      <span class="setting-label">Svårighet</span>
+      <span class="seg">
+        ${LEVELS.map((l) => `<button class="btn ${l.id === (s.level || 0) ? 'selected' : ''}" data-key="level-${l.id}" data-level="${l.id}">${l.icon ? l.icon + ' ' : ''}${l.name}</button>`).join('')}
+      </span>
+    </div>
+    <div class="setting-row">
       <span class="setting-label">Tid per fråga</span>
       <span class="seg">
         ${TIME_OPTIONS.map((t) => `<button class="btn ${t === s.time ? 'selected' : ''}" data-key="time-${t}" data-time="${t}">${t} s</button>`).join('')}
@@ -63,6 +80,7 @@ function renderSettings(el, state, emit) {
     })
   );
   el.querySelector('[data-all]').addEventListener('click', () => emit({ count: max }));
+  el.querySelectorAll('[data-level]').forEach((b) => b.addEventListener('click', () => emit({ level: Number(b.dataset.level) })));
   el.querySelectorAll('[data-time]').forEach((b) => b.addEventListener('click', () => emit({ time: Number(b.dataset.time) })));
 
   // Behåll fokus vid omritning (viktigt för TV-fjärrkontrollen).
@@ -95,7 +113,9 @@ function confirmButton(btn, onConfirm) {
 
 function categoryLabel(state) {
   const c = state.categories.find((x) => x.id === state.settings.category);
-  return c ? `${c.icon} ${c.name}` : '';
+  if (!c) return '';
+  const level = levelLabel(state.settings.level);
+  return `${c.icon} ${c.name}${level ? ' · ' + level : ''}`;
 }
 
 // ---------- Uppkoppling ----------

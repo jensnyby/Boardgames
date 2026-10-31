@@ -306,3 +306,10 @@ body.phone { min-height: 100dvh; font-size: 17px; }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* Tätare inställningar på TV:n så att allt får plats på en skärm. */
+.tv .lobby .panel { gap: .8em; padding: 1.1em 1.6em; }
+.tv .seg .btn, .tv .stepper .btn { padding: .35em .8em; }
+.tv .stepper .value { font-size: 1.25em; }
+.tv .cat .count { font-size: .7em; }
+.tv .setting-label { min-width: 6.4em; }

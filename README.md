@@ -3,7 +3,7 @@
 En frågesport för hela sällskapet: frågorna visas på TV:n (t.ex. Google TV) och alla svarar från sina egna telefoner.
 
 **Kategorier** (30 frågor var): Finlands historia · Finlands geografi · Finlands natur · Musik · Första hjälpen · Mat · Transportbokning · Plastprofiltillverkning · Framtidens sjöfartsbränslen · Inspektion i Österbottens välfärdsområde · Sport · 🚂 På spåret · 🎧 Gissa låten (Finland) · 🌍 Gissa låten – internationellt · eller **Blandat** (alla 420).
-Man väljer kategori, antal frågor och tid per fråga innan spelet startar.
+Man väljer kategori, svårighetsgrad (🟢 Lätt, 🟡 Medel, 🔴 Svår eller Alla), antal frågor och tid per fråga innan spelet startar. Varje kategori har 10 frågor per svårighetsgrad.
 
 ## Kom igång
 
@@ -75,10 +75,10 @@ Spotify fungerar inte här: Spotifys regler för utvecklare förbjuder spel och 
 Frågorna finns i [`public/questions.js`](public/questions.js). Varje fråga har formen:
 
 ```js
-{ q: 'Frågan?', a: 'Rätt svar', w: ['Fel 1', 'Fel 2', 'Fel 3'] },
+{ d: 2, q: 'Frågan?', a: 'Rätt svar', w: ['Fel 1', 'Fel 2', 'Fel 3'] },
 ```
 
-Svarsalternativen blandas automatiskt. Det går att lägga till fler frågor i en kategori eller en helt ny kategori i `CATEGORIES`.
+`d` är svårighetsgraden: 1 = lätt, 2 = medel, 3 = svår. Svarsalternativen blandas automatiskt. Det går att lägga till fler frågor i en kategori eller en helt ny kategori i `CATEGORIES`.
 
 ## Filer
 

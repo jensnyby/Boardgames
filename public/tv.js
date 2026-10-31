@@ -174,7 +174,7 @@ function renderQuestion() {
   show('question');
   const q = state.question;
   $('#q-num').textContent = `Fråga ${q.number} / ${q.total}`;
-  $('#q-cat').textContent = `${q.category.icon} ${q.category.name}`;
+  $('#q-cat').textContent = `${q.category.icon} ${q.category.name}${q.level ? ' · ' + levelLabel(q.level) : ''}`;
   $('#q-text').textContent = q.hasAudio ? `🎧 ${q.text}` : q.clueCount ? `🚂 ${q.text}` : q.text;
   $('#q-text').classList.toggle('small', !!q.clueCount);
   $('#q-eq').classList.toggle('hidden', !q.hasAudio);
