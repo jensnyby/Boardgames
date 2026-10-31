@@ -25,7 +25,7 @@ function renderSettings(el, state, emit) {
           (c) => `
         <button class="cat ${c.id === s.category ? 'selected' : ''}" data-key="cat-${c.id}" data-cat="${c.id}">
           <span class="icon">${c.icon}</span>
-          <span class="name">${esc(c.name)}</span>
+          <span class="name">${esc(c.short || c.name)}</span>
           <span class="count">${c.count} frågor</span>
         </button>`
         )

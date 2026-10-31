@@ -220,6 +220,7 @@ function render() {
       view.innerHTML = `
         <div class="chip" style="align-self:center">Fråga ${q.number} / ${q.total}${q.hasAudio ? ' · 🎧 Lyssna på TV:n' : ''}</div>
         <div class="phone-q">${esc(q.text)}</div>
+        ${q.clueCount ? '<div class="chip" id="clue-pts" style="align-self:center"></div>' : ''}
         <div class="phone-timer"><div id="pt"></div></div>
         <div class="opt-grid">
           ${q.options
@@ -237,8 +238,14 @@ function render() {
     }
     const end = state.receivedAt + q.remainingMs;
     const step = () => {
+      const left = Math.max(0, end - performance.now());
       const fill = $('#pt');
-      if (fill) fill.style.width = `${(Math.max(0, end - performance.now()) / (q.duration * 1000)) * 100}%`;
+      if (fill) fill.style.width = `${(left / (q.duration * 1000)) * 100}%`;
+      const pts = $('#clue-pts');
+      if (pts) {
+        const shown = Math.min(Math.floor((q.duration * 1000 - left) / (q.clueSeconds * 1000)), q.clueCount - 1);
+        pts.textContent = `🚂 Ledtråd ${shown + 1} av ${q.clueCount} · svara nu för ${(q.clueCount - shown) * 200} p`;
+      }
     };
     step();
     tick = setInterval(step, 100);

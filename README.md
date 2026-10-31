@@ -2,7 +2,7 @@
 
 En frågesport för hela sällskapet: frågorna visas på TV:n (t.ex. Google TV) och alla svarar från sina egna telefoner.
 
-**Kategorier** (30 frågor var): Finlands historia · Finlands geografi · Finlands natur · Musik · Första hjälpen · Mat · Transportbokning · Plastprofiltillverkning · Framtidens sjöfartsbränslen · Inspektion i Österbottens välfärdsområde · 🎧 Gissa låten · eller **Blandat** (alla 330).
+**Kategorier** (30 frågor var): Finlands historia · Finlands geografi · Finlands natur · Musik · Första hjälpen · Mat · Transportbokning · Plastprofiltillverkning · Framtidens sjöfartsbränslen · Inspektion i Österbottens välfärdsområde · 🚂 På spåret · 🎧 Gissa låten · eller **Blandat** (alla 360).
 Man väljer kategori, antal frågor och tid per fråga innan spelet startar.
 
 ## Kom igång
@@ -50,6 +50,10 @@ Det går också att casta en Chrome-flik från en dator (⋮ → *Casta…* → 
 Vill ni sluta i förtid trycker ni **⏹ Avsluta** på TV:n eller på spelledarens telefon, och trycker igen för att bekräfta. Spelet hoppar då till slutresultatet med poängen hittills.
 
 Om en telefon låser sig eller tappar anslutningen går den automatiskt tillbaka in i spelet med samma poäng. Även TV-sidan kan laddas om mitt i spelet utan att något försvinner.
+
+## 🚂 På spåret
+
+Som i TV-programmet: vart är vi på väg? TV:n visar fem ledtrådar om en stad någonstans i världen, en ny var 8:e sekund, från svår till lätt. Svarar man rätt redan på första ledtråden får man 1000 poäng, sedan 800, 600, 400 och 200. Varje fråga tar 40 sekunder oavsett inställd tid.
 
 ## 🎧 Gissa låten
 

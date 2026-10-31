@@ -150,12 +150,26 @@ function renderQuestion() {
   const q = state.question;
   $('#q-num').textContent = `Fråga ${q.number} / ${q.total}`;
   $('#q-cat').textContent = `${q.category.icon} ${q.category.name}`;
-  $('#q-text').textContent = q.hasAudio ? `🎧 ${q.text}` : q.text;
+  $('#q-text').textContent = q.hasAudio ? `🎧 ${q.text}` : q.clueCount ? `🚂 ${q.text}` : q.text;
+  $('#q-text').classList.toggle('small', !!q.clueCount);
   $('#q-eq').classList.toggle('hidden', !q.hasAudio);
+  $('#q-clues').classList.toggle('hidden', !q.clueCount);
   $('#q-options').innerHTML = optionsHtml(q, false);
   const active = state.players.filter((p) => p.connected);
   $('#q-answered').textContent = `${active.filter((p) => p.answered).length} / ${active.length} har svarat`;
-  countdown($('#timer-fill'), $('#timer-num'), q.remainingMs, q.duration * 1000);
+  let shownClues = -1;
+  countdown($('#timer-fill'), $('#timer-num'), q.remainingMs, q.duration * 1000, (left) => {
+    if (!q.clueCount) return;
+    // Visa en ny ledtråd i taget, med poängen den är värd.
+    const shown = Math.min(Math.floor((q.duration * 1000 - left) / (q.clueSeconds * 1000)), q.clueCount - 1);
+    if (shown === shownClues) return;
+    shownClues = shown;
+    const clues = host.room.questions[host.room.index].clues;
+    $('#q-clues').innerHTML = clues
+      .slice(0, shown + 1)
+      .map((c, i) => `<div class="clue ${i === shown ? 'current' : ''}"><span class="pts">${(q.clueCount - i) * 200} p</span>${esc(c)}</div>`)
+      .join('');
+  });
 }
 
 function renderReveal(changed) {

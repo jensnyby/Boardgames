@@ -1,6 +1,7 @@
 // Spellogiken. Körs i TV:ns webbläsare – telefonerna skickar sina svar hit.
 
-const REVEAL_SECONDS = 12; // hur länge rätt svar + ställning visas innan nästa fråga
+const REVEAL_SECONDS = 12;
+const CLUE_SECONDS = 8; // På spåret: en ny ledtråd var 8:e sekund // hur länge rätt svar + ställning visas innan nästa fråga
 const STORE_KEY = 'quizRoom';
 const PING_TIMEOUT_MS = 10000;
 
@@ -38,6 +39,10 @@ function pickQuestions(category, count) {
   }
   return picked.map((q) => {
     if (q.cat === 'gissa') return songQuestion(q);
+    if (q.clues) {
+      const options = shuffle([q.a, ...q.w]);
+      return { text: 'Vart är vi på väg?', options, correct: options.indexOf(q.a), cat: q.cat, clues: q.clues };
+    }
     const options = shuffle([q.a, ...q.w]);
     return { text: q.q, options, correct: options.indexOf(q.a), cat: q.cat };
   });
@@ -286,21 +291,32 @@ class QuizHost {
     for (const p of room.players.values()) Object.assign(p, { answer: null, lastGain: 0, lastCorrect: null });
     room.phase = 'question';
     room.questionStart = Date.now();
-    this.timer = setTimeout(() => this.reveal(), room.settings.time * 1000 + 300);
+    this.timer = setTimeout(() => this.reveal(), this.durationMs() + 300);
     this.broadcast();
+  }
+
+  // Frågans längd: På spåret-frågor tar en viss tid per ledtråd, övriga följer inställningen.
+  durationMs(q = this.room.questions[this.room.index]) {
+    return q && q.clues ? q.clues.length * CLUE_SECONDS * 1000 : this.room.settings.time * 1000;
   }
 
   answer(p, choice) {
     const room = this.room;
     if (room.phase !== 'question' || p.answer !== null || ![0, 1, 2, 3].includes(choice)) return;
     const q = room.questions[room.index];
-    const durationMs = room.settings.time * 1000;
+    const durationMs = this.durationMs(q);
     const elapsed = Date.now() - room.questionStart;
     if (elapsed > durationMs + 500) return;
     p.answer = choice;
     p.lastCorrect = choice === q.correct;
-    // Rätt svar ger 500 poäng + upp till 500 bonus för snabbhet.
-    p.lastGain = p.lastCorrect ? 500 + Math.round(500 * Math.max(0, 1 - elapsed / durationMs)) : 0;
+    if (q.clues) {
+      // På spåret: 1000 poäng på första ledtråden, sedan 800, 600, 400, 200.
+      const shown = Math.min(Math.floor(elapsed / (CLUE_SECONDS * 1000)), q.clues.length - 1);
+      p.lastGain = p.lastCorrect ? (q.clues.length - shown) * 200 : 0;
+    } else {
+      // Rätt svar ger 500 poäng + upp till 500 bonus för snabbhet.
+      p.lastGain = p.lastCorrect ? 500 + Math.round(500 * Math.max(0, 1 - elapsed / durationMs)) : 0;
+    }
     p.score += p.lastGain;
     // Rätt svar visas först när tiden är ute, även om alla redan har svarat.
     this.broadcast();
@@ -404,10 +420,15 @@ class QuizHost {
         text: q.text,
         options: q.options,
         category: CATEGORIES[q.cat],
-        duration: room.settings.time,
+        duration: this.durationMs(q) / 1000,
         hasAudio: !!q.song,
-        remainingMs: Math.max(0, room.questionStart + room.settings.time * 1000 - Date.now()),
+        remainingMs: Math.max(0, room.questionStart + this.durationMs(q) - Date.now()),
       };
+      if (q.clues) {
+        // Ledtrådarnas text visas på TV:n; telefonerna behöver bara antal och takt.
+        state.question.clueCount = q.clues.length;
+        state.question.clueSeconds = CLUE_SECONDS;
+      }
       if (room.phase !== 'question') {
         // Rätt svar skickas först när frågan är avslutad.
         state.question.correct = q.correct;
@@ -449,7 +470,7 @@ class QuizHost {
   resumeTimers() {
     const room = this.room;
     if (room.phase === 'question') {
-      const left = room.questionStart + room.settings.time * 1000 - Date.now();
+      const left = room.questionStart + this.durationMs() - Date.now();
       this.timer = setTimeout(() => this.reveal(), Math.max(0, left) + 300);
     } else if (room.phase === 'reveal') {
       this.timer = setTimeout(() => this.startQuestion(), Math.max(0, room.revealEndsAt - Date.now()));

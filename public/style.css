@@ -82,7 +82,7 @@ button {
   text-align: center;
 }
 .cat .icon { font-size: 1.8em; }
-.cat .name { font-weight: 700; font-size: .95em; overflow-wrap: anywhere; }
+.cat .name { font-weight: 700; font-size: .95em; }
 .cat .count { font-size: .75em; color: var(--muted); }
 .cat.selected { background: rgba(255, 255, 255, .25); border-color: var(--white); }
 
@@ -131,10 +131,12 @@ body.tv {
 
 .join { display: flex; gap: 1.5em; align-items: center; }
 .tv .cats { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .5em; }
-.tv .cat { padding: .5em .25em; font-size: .78em; hyphens: manual; }
+.tv .cat { padding: .35em .25em; font-size: .74em; hyphens: manual; gap: .1em; }
+.tv .cat .icon { font-size: 1.4em; }
 .join .qr { width: 13em; height: 13em; border-radius: 14px; background: #fff; padding: .4em; flex: none; }
 .join .qr svg { width: 100%; height: 100%; display: block; }
 #status { font-size: .8em; color: var(--muted); }
+#start-hint { font-size: .85em; }
 #status[data-status="online"] { color: #8be3ad; }
 #status[data-status="offline"] { color: #ffb3ad; }
 .join .url { font-size: 1.05em; color: var(--muted); overflow-wrap: anywhere; }
@@ -185,6 +187,13 @@ body.tv {
 .song-card { display: flex; align-items: center; gap: 1em; margin-top: 1.2em; background: rgba(0, 0, 0, .2); border-radius: var(--radius); padding: .8em; font-size: 1.3em; font-weight: 800; }
 .song-card img { width: 4.5em; height: 4.5em; border-radius: 10px; object-fit: cover; }
 .song-card .muted { color: var(--muted); font-size: .7em; font-weight: 600; }
+
+.q-text.small { font-size: 1.9em; margin: 0; }
+.clues { flex: 1; display: flex; flex-direction: column; gap: .45em; justify-content: center; min-height: 0; }
+.clue { display: flex; gap: .8em; align-items: baseline; font-size: 1.3em; font-weight: 600; color: var(--muted); animation: pop .35s ease-out; }
+.clue.current { color: var(--white); font-weight: 800; }
+.clue .pts { flex: none; min-width: 4.2em; padding: .1em .5em; border-radius: 999px; background: rgba(255, 255, 255, .15); text-align: center; font-size: .85em; }
+.clue.current .pts { background: #ffd84d; color: #3a2c00; }
 
 .answered { text-align: center; color: var(--muted); font-size: 1.1em; }
 
